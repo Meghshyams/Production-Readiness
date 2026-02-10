@@ -4,7 +4,7 @@ description: Run a comprehensive production readiness audit. Use when a user wan
 user-invocable: true
 disable-model-invocation: true
 allowed-tools: "Read, Edit, Write, Glob, Grep, Bash(npm *), Bash(npx *), Bash(yarn *), Bash(pnpm *), Bash(bun *), Bash(git *), Bash(cat *), Bash(ls *), Bash(node *), Bash(tsc *), Bash(pwd), Bash(which *), Bash(head *), Bash(wc *), Bash(curl *), Bash(playwright *), Task, WebFetch"
-argument-hint: "[--skip=phase1,phase2] [--only=security,visual]"
+argument-hint: "[--skip=phase1,phase2] [--only=security,visual] [--fresh] [--cached]"
 ---
 
 # Production Readiness Audit
@@ -17,9 +17,81 @@ You are a senior engineer and QA tester performing a final production readiness 
   - `--skip=phase1,phase2` — skip specific phases (e.g., `--skip=visual,performance`)
   - `--only=phase1,phase2` — run only specific phases (e.g., `--only=security,testing`)
   - `--port=NNNN` — override dev server port (default: auto-detect)
-  - No arguments = run all 7 phases
+  - `--fresh` — ignore any cached results, run all phases from scratch
+  - `--cached` — display the last cached report without running anything (quick review)
+  - No arguments = run all 7 phases (with smart caching if available)
 
 Phase names: `security`, `visual`, `quality`, `testing`, `build`, `errors`, `performance`
+
+---
+
+## CACHE MANAGEMENT
+
+The plugin supports **git-aware incremental caching** so that reruns only re-execute phases affected by actual code changes. Cached results are clearly labeled, and the user can always force a fresh run.
+
+### Cache File
+
+Results are stored in `.production-readiness/cache.json` in the project root.
+
+### Cache Structure
+
+```json
+{
+  "version": 1,
+  "timestamp": "2025-01-15T10:30:00Z",
+  "gitCommitHash": "abc123...",
+  "gitDirtyFiles": ["src/app/page.tsx"],
+  "projectName": "my-app",
+  "detection": { },
+  "phases": {
+    "security": {
+      "status": "PASS",
+      "critical": 0,
+      "warnings": 2,
+      "info": 1,
+      "findings": [],
+      "relevantFileGlobs": ["src/**", "*.config.*", ".env*"]
+    }
+  },
+  "report": "# Production Readiness Report\n..."
+}
+```
+
+### On-Run Behavior
+
+1. **If `--fresh` flag**: Skip cache entirely, run all phases, save results at end.
+2. **If `--cached` flag**: Read `.production-readiness/cache.json`, display the stored report, and stop. If no cache exists, inform the user and suggest running without `--cached`.
+3. **Default (no flag)**:
+   a. Check if `.production-readiness/cache.json` exists.
+   b. If no cache: run full audit (same as without caching), save results at end.
+   c. If cache exists:
+      - Read the cache file.
+      - Run `git diff --name-only <cachedCommitHash>..HEAD` to get changed committed files.
+      - Run `git diff --name-only` to get uncommitted changes.
+      - Combine both lists into `changedFiles`.
+      - If `changedFiles` is empty AND cache is less than 24 hours old: show cached report with an `[ALL CACHED]` banner at the top.
+      - Otherwise: map `changedFiles` to affected phases using the table below, rerun only affected phases + dependency audit (check 2.3, always fresh), merge fresh results with cached results, and save updated cache.
+
+### Phase-to-File-Pattern Mapping
+
+A phase reruns if ANY changed file matches its patterns:
+
+| Phase | Rerun if changed files match |
+|-------|------------------------------|
+| security | `src/**`, `app/**`, `lib/**`, `server/**`, `api/**`, `*.config.*`, `.env*`, `middleware.*` |
+| quality | `src/**`, `app/**`, `lib/**`, `*.config.*`, `tsconfig*`, `.eslintrc*`, `biome.json`, `package.json` |
+| testing | `src/**`, `app/**`, `lib/**`, `test/**`, `tests/**`, `__tests__/**`, `*.test.*`, `*.spec.*`, `e2e/**`, `package.json`, `*lock*` |
+| errors | `src/**`, `app/**`, `lib/**`, `server/**`, `middleware.*` |
+| build | `src/**`, `app/**`, `lib/**`, `*.config.*`, `package.json`, `*lock*`, `tsconfig*`, `public/**` |
+| visual | `src/**`, `app/**`, `components/**`, `styles/**`, `*.css`, `*.scss`, `public/**`, `package.json` |
+| performance | `src/**`, `app/**`, `lib/**`, `package.json`, `*.config.*` |
+
+### Special Rules
+
+- **`package.json` or lock file changes** → rerun ALL phases (dependencies affect everything).
+- **`npm audit` (check 2.3)** → ALWAYS rerun regardless of cache (new CVEs are external).
+- **Detection phase (Phase 1)** → ALWAYS runs (it's fast and sets context).
+- **`--skip` / `--only` flags** → apply on top of cache logic. A phase that would be cached but is also in `--skip` stays skipped. A phase not in `--only` is skipped even if it would rerun.
 
 ---
 
@@ -72,7 +144,33 @@ Present findings to the user in a summary table before proceeding:
 | CI/CD            | GitHub Actions                  |
 ```
 
-Ask user: "Proceeding with all 7 phases. Reply with phase names to skip, or press Enter to continue."
+### Cache Status Check
+
+After presenting the detection summary, check for cached results:
+
+- If `--fresh` was passed, note: "Running fresh audit (cache ignored)."
+- If `--cached` was passed, read `.production-readiness/cache.json` and display the stored report. Stop here.
+- If `.production-readiness/cache.json` exists: determine which phases are stale vs cached (see CACHE MANAGEMENT section) and present a cache status table:
+
+```
+## Cache Status
+
+| Phase          | Status     | Reason                         |
+|----------------|------------|--------------------------------|
+| Security       | RERUNNING  | 3 source files changed         |
+| Code Quality   | CACHED     | No relevant files changed      |
+| Testing        | RERUNNING  | Test files changed             |
+| Error Handling | CACHED     | No relevant files changed      |
+| Config & Build | CACHED     | No relevant files changed      |
+| Visual QA      | RERUNNING  | UI components changed          |
+| Performance    | CACHED     | No relevant files changed      |
+
+Phases marked CACHED will use results from [date]. Use --fresh to rerun all.
+```
+
+- If no cache exists, note: "No cached results found. Running full audit."
+
+Ask user: "Proceeding with all 7 phases. Reply with phase names to skip, `--fresh` to rerun all, or press Enter to continue."
 
 ---
 
@@ -454,7 +552,15 @@ If ORM is detected:
 
 ## REPORT FORMAT
 
-After all phases complete, present a structured report:
+After all phases complete, present a structured report.
+
+If any phases used cached results, add this note at the top of the report:
+
+> **Note**: This report includes cached results for unchanged phases. Run with `--fresh` for a complete re-audit.
+
+Each phase section header should indicate its source:
+- Fresh phase: `## Security Audit`
+- Cached phase: `## Security Audit [CACHED — from Jan 15]`
 
 ```markdown
 # Production Readiness Report
@@ -465,16 +571,16 @@ After all phases complete, present a structured report:
 
 ## Summary
 
-| Pillar          | Status | Critical | Warnings | Info |
-|-----------------|--------|----------|----------|------|
-| Security        | PASS/FAIL | N     | N        | N    |
-| Visual QA       | PASS/FAIL | N     | N        | N    |
-| Code Quality    | PASS/FAIL | N     | N        | N    |
-| Testing         | PASS/FAIL | N     | N        | N    |
-| Error Handling  | PASS/FAIL | N     | N        | N    |
-| Config & Build  | PASS/FAIL | N     | N        | N    |
-| Performance     | PASS/FAIL | N     | N        | N    |
-| **TOTAL**       |        | **N**    | **N**    | **N**|
+| Pillar          | Status | Critical | Warnings | Info | Source              |
+|-----------------|--------|----------|----------|------|---------------------|
+| Security        | PASS/FAIL | N     | N        | N    | Fresh               |
+| Visual QA       | PASS/FAIL | N     | N        | N    | Cached (Jan 15)     |
+| Code Quality    | PASS/FAIL | N     | N        | N    | Fresh               |
+| Testing         | PASS/FAIL | N     | N        | N    | Cached (Jan 15)     |
+| Error Handling  | PASS/FAIL | N     | N        | N    | Cached (Jan 15)     |
+| Config & Build  | PASS/FAIL | N     | N        | N    | Fresh               |
+| Performance     | PASS/FAIL | N     | N        | N    | Cached (Jan 15)     |
+| **TOTAL**       |        | **N**    | **N**    | **N**|                     |
 
 ## Verdict Logic
 - **READY**: Zero CRITICAL issues, fewer than 5 WARNINGs
@@ -539,3 +645,22 @@ Prioritized list of actions:
 8. **Run phases in order**: Detection must complete before other phases. Security and Code Quality can run conceptually in sequence. Build must succeed before Visual QA (if build is needed to start the app).
 9. **Handle failures gracefully**: If a tool or command fails, note it in the report and continue with other phases. Don't let one failure block the entire audit.
 10. **Use parallel tool calls**: When checking multiple independent things (e.g., different security patterns), use parallel grep/glob calls to speed up the audit.
+11. **Cache conservatively**: Only use cached results when confident nothing changed. When in doubt, rerun the phase. Production readiness must not be compromised for speed.
+12. **Suggest gitignoring cache**: If `.production-readiness/` is not in `.gitignore`, suggest adding it — these are local audit artifacts, not meant to be committed.
+
+---
+
+## PHASE 9: SAVE RESULTS
+
+After the report is generated, persist all results for future incremental reruns:
+
+1. **Create directory**: Create `.production-readiness/` in the project root if it doesn't exist.
+2. **Write `cache.json`**: Save all phase results, detection data, the current git commit hash, dirty file list, and timestamp in the cache structure defined in CACHE MANAGEMENT.
+3. **Write `last-report.md`**: Save the full rendered report for quick reference (so users can read it without rerunning).
+4. **Suggest `.gitignore`**: If `.production-readiness/` is not already in `.gitignore`, suggest adding it:
+   ```
+   # Production readiness audit cache
+   .production-readiness/
+   ```
+
+This phase is silent — do not include it in the report. Just save the files and briefly note: "Results cached to `.production-readiness/` for faster reruns."

@@ -58,23 +58,76 @@ claude --plugin-dir ./production-readiness
 ```
 Phase 1: DETECT
 ├── Identifies your framework, package manager, test runner, lint tool, ORM
-├── Finds your page/route list (app-map, file-based routing, etc.)
-├── Checks for Playwright (for visual QA screenshots)
-└── Shows you a summary table before proceeding
+├── Finds your page/route list
+├── Checks for cached results from previous runs
+└── Shows summary table + cache status before proceeding
 
 Phase 2-7: AUDIT
-├── Runs automated checks (grep, lint, build, tests)
-├── Takes screenshots if Playwright is available
-├── Reads each screenshot with vision to find visual issues
+├── Skips phases with valid cached results (no relevant files changed)
+├── Reruns phases where source files changed since last audit
+├── Takes screenshots if Playwright is available (Visual QA)
 └── Collects all findings with severity levels
 
 Phase 8: REPORT
-├── Structured report organized by pillar
-├── Severity: CRITICAL / WARNING / INFO
+├── Merges fresh and cached results into a unified report
+├── Labels each phase as Fresh or Cached with date
 ├── Verdict: READY / NEEDS FIXES / BLOCKED
-├── "What's Good" section (things done right)
 └── Prioritized next steps
+
+Phase 9: SAVE
+└── Caches all results for future incremental reruns
 ```
+
+## Smart Caching (Incremental Reruns)
+
+When you fix issues and rerun the audit, the plugin automatically **skips phases where nothing changed** — saving time without compromising quality.
+
+### Git-Based Change Detection
+
+After each run, results are cached in `.production-readiness/cache.json`. On the next run, the plugin uses `git diff` to detect which files changed and only reruns the phases affected by those changes. Dependency vulnerability checks (`npm audit`) always run fresh regardless of cache, since new CVEs are external.
+
+### Flags
+
+```bash
+# Rerun only phases affected by your changes (default behavior)
+/production-readiness
+
+# Force a complete fresh audit (ignore cache)
+/production-readiness --fresh
+
+# View the last audit report without running anything
+/production-readiness --cached
+```
+
+### Cache Status Table
+
+On a cached rerun, Phase 1 shows which phases will rerun and which are cached:
+
+```
+| Phase          | Status     | Reason                         |
+|----------------|------------|--------------------------------|
+| Security       | RERUNNING  | 3 source files changed         |
+| Code Quality   | CACHED     | No relevant files changed      |
+| Testing        | RERUNNING  | Test files changed             |
+| Error Handling | CACHED     | No relevant files changed      |
+| Config & Build | CACHED     | No relevant files changed      |
+| Visual QA      | RERUNNING  | UI components changed          |
+| Performance    | CACHED     | No relevant files changed      |
+```
+
+### What's Always Fresh
+
+- **Dependency vulnerability checks** (`npm audit`) — new CVEs can appear at any time
+- **Detection phase** — always runs to ensure context is current
+- **Any phase where `package.json` or lock files changed** — dependency changes affect everything
+
+### Cache Location
+
+Results are stored in `.production-readiness/` in your project root. Add this to `.gitignore` — these are local audit artifacts, not meant to be committed.
+
+### Combining with Other Flags
+
+`--fresh` works with `--skip`, `--only`, and `--port`. For example, `--fresh --only=security` runs a fresh security-only audit.
 
 ## Adapts to Any Stack
 
@@ -161,6 +214,12 @@ production-readiness/
 ├── CONTRIBUTING.md            # How to contribute
 ├── LICENSE                    # MIT
 └── README.md
+
+# Generated in the audited project (gitignore this):
+<project>/
+└── .production-readiness/
+    ├── cache.json             # Cached audit results
+    └── last-report.md         # Last generated report
 ```
 
 ## Contributing
