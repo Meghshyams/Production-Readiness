@@ -3,8 +3,8 @@ name: production-readiness
 description: Run a comprehensive production readiness audit. Use when a user wants to check if their project is ready for deployment. Covers security, visual QA, code quality, testing, error handling, configuration/build, and performance.
 user-invocable: true
 disable-model-invocation: true
-allowed-tools: Read, Edit, Write, Glob, Grep, Bash(npm *), Bash(npx *), Bash(yarn *), Bash(pnpm *), Bash(bun *), Bash(git *), Bash(cat *), Bash(ls *), Bash(node *), Bash(tsc *), Bash(pwd), Bash(which *), Bash(head *), Bash(wc *), Bash(curl *), Bash(playwright *), Task, WebFetch
-argument-hint: [--skip=phase1,phase2] [--only=security,visual]
+allowed-tools: "Read, Edit, Write, Glob, Grep, Bash(npm *), Bash(npx *), Bash(yarn *), Bash(pnpm *), Bash(bun *), Bash(git *), Bash(cat *), Bash(ls *), Bash(node *), Bash(tsc *), Bash(pwd), Bash(which *), Bash(head *), Bash(wc *), Bash(curl *), Bash(playwright *), Task, WebFetch"
+argument-hint: "[--skip=phase1,phase2] [--only=security,visual]"
 ---
 
 # Production Readiness Audit
