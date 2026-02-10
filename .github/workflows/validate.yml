@@ -99,12 +99,3 @@ jobs:
           globs: |
             README.md
             CONTRIBUTING.md
-          config: |
-            {
-              "MD013": false,
-              "MD033": false,
-              "MD040": false,
-              "MD041": false,
-              "MD046": false,
-              "MD047": false
-            }
