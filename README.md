@@ -207,7 +207,19 @@ production-readiness/
 │   └── marketplace.json      # Marketplace distribution manifest
 ├── skills/
 │   └── production-readiness/
-│       └── SKILL.md          # The skill — all 7 audit phases
+│       ├── SKILL.md           # Hub: role, args, execution flow, guidelines
+│       ├── cache-management.md  # Cache logic, structure, file-pattern mapping
+│       ├── report-format.md     # Report template, verdict logic, cached labels
+│       └── phases/
+│           ├── 01-detect.md     # Phase 1: Detection + cache status check
+│           ├── 02-security.md   # Phase 2: Security audit (10 checks)
+│           ├── 03-quality.md    # Phase 3: Code quality (5 checks)
+│           ├── 04-testing.md    # Phase 4: Testing (3 checks)
+│           ├── 05-errors.md     # Phase 5: Error handling & observability (5 checks)
+│           ├── 06-build.md      # Phase 6: Configuration & build (5 checks)
+│           ├── 07-visual.md     # Phase 7: Visual QA (2 checks)
+│           ├── 08-performance.md  # Phase 8: Performance (4 checks)
+│           └── 09-save.md       # Phase 9: Save results
 ├── .github/
 │   └── workflows/
 │       └── validate.yml      # CI: validates plugin structure
