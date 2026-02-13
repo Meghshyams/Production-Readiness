@@ -55,7 +55,7 @@ Detect the project stack (framework, package manager, test runner, lint tool, OR
 
 ### Phase 5: Error Handling & Observability
 
-5 checks covering global error boundaries, error tracking integration, health check endpoints, structured logging, and sensitive data in logs.
+6 checks covering global error boundaries, error tracking integration, health check endpoints, structured logging, sensitive data in logs, and unhandled promise rejections.
 
 → See [phases/05-errors.md](phases/05-errors.md)
 

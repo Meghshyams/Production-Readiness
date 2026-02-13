@@ -45,3 +45,60 @@ Search log statements for patterns that might log:
 - PII (email, phone, SSN patterns)
 
 **Severity**: WARNING if sensitive data appears in log statements
+
+### 5.6 Unhandled Promise Rejections
+
+Check for global unhandled promise rejection handlers to catch async errors that escape try-catch blocks.
+
+**Node.js / Next.js (server-side):**
+
+Search for process-level handlers:
+
+```bash
+grep -rn "process\.on\(['\"]unhandledRejection" --include="*.{ts,js,tsx,jsx}" .
+```
+
+Check in server startup files: `server.ts`, `server.js`, `instrumentation.ts`, `next.config.js`
+
+**Browser (client-side):**
+
+Search for window-level handlers:
+
+```bash
+grep -rn "window\.addEventListener\(['\"]unhandledrejection" --include="*.{ts,tsx,js,jsx}" src/ app/
+```
+
+Check in main entry files: `src/main.tsx`, `src/main.ts`, `src/index.tsx`, `app/layout.tsx`
+
+**What's acceptable:**
+
+```javascript
+// Node.js (server-side)
+process.on('unhandledRejection', (reason, promise) => {
+  logger.error('Unhandled Rejection', { reason, promise });
+  // Send to error tracking service
+  Sentry.captureException(reason);
+});
+
+// Browser (client-side)
+window.addEventListener('unhandledrejection', (event) => {
+  logger.error('Unhandled promise rejection', event.reason);
+  Sentry.captureException(event.reason);
+});
+```
+
+**What's problematic:**
+
+- No unhandled rejection handler (silent failures in production)
+- Handler only logs but doesn't send to error tracking
+- Handler doesn't exit process on critical server errors (for long-running services)
+- Async errors in React components (Error Boundary won't catch them)
+
+**Why this matters:**
+
+Unhandled promise rejections are one of the most common sources of silent failures. Without a global handler:
+- Failed async operations may never be noticed
+- Users see broken features with no error logged
+- Server processes may be in an inconsistent state
+
+**Severity**: WARNING if no unhandled rejection handler configured
