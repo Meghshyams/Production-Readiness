@@ -2,25 +2,26 @@
 
 > Like having a senior engineer + QA tester do a final review before you deploy.
 
-A comprehensive production readiness audit for [Claude Code](https://claude.com/claude-code). Run `/production-readiness` on any project to get a structured report covering security, visual QA, code quality, testing, error handling, build configuration, and performance — with actionable fixes for every issue found.
+A comprehensive production readiness audit for [Claude Code](https://claude.com/claude-code). Run `/production-readiness` on any project to get a structured report covering security, visual QA, code quality, testing, error handling, build configuration, performance, and accessibility — with actionable fixes for every issue found.
 
 ## Why This Exists
 
 Deploying to production is stressful. You check one thing, forget another. Did you leave `console.log` in? Are there hardcoded API keys? Does the mobile layout break? Is the build even passing?
 
-This plugin runs **40+ automated checks** across 7 categories and produces a single, prioritized report. It adapts to whatever tech stack you're using — no configuration needed.
+This plugin runs **60+ automated checks** across 8 categories and produces a single, prioritized report. It adapts to whatever tech stack you're using — no configuration needed.
 
-## The 7 Pillars
+## The 8 Pillars
 
 | # | Pillar | What's Checked |
 |---|--------|---------------|
-| 1 | **Security** | Hardcoded secrets, `.env` safety, dependency vulnerabilities, input validation, auth config, rate limiting, security headers, error exposure, SQL injection, XSS |
+| 1 | **Security** | Hardcoded secrets, `.env` safety, dependency vulnerabilities, input validation, auth config, rate limiting, security headers, error exposure, SQL injection, XSS, CORS configuration, dependency licenses |
 | 2 | **Visual QA** | Screenshots every page at desktop + mobile viewports, then inspects each for layout issues, spelling mistakes, responsive problems, broken UI, and visual inconsistencies |
 | 3 | **Code Quality** | `console.log` / `debugger` statements, TODO/FIXME comments, lint errors, type errors, unused dependencies |
 | 4 | **Testing** | Runs your test suites, reports pass/fail and coverage, flags untested critical paths (auth, payments, mutations) |
 | 5 | **Error Handling** | Error boundaries, error tracking (Sentry etc.), health check endpoints, structured logging, sensitive data in logs |
-| 6 | **Config & Build** | Build passes, env vars documented, source maps hidden, no dev-only leaks, HTTPS redirects |
-| 7 | **Performance** | Image optimization, bundle size, caching headers, N+1 query patterns |
+| 6 | **Config & Build** | Build passes, env vars documented, source maps hidden, no dev-only leaks, HTTPS redirects, Docker security, container orchestration, platform deployment configs |
+| 7 | **Performance** | Image optimization, bundle size, caching headers, N+1 query patterns, lazy loading, Core Web Vitals, font optimization, third-party scripts, API response size |
+| 8 | **Accessibility** | Semantic HTML, ARIA labels, keyboard navigation, color contrast, screen reader support, automated a11y testing |
 
 ## Install
 
@@ -38,7 +39,7 @@ claude --plugin-dir ./production-readiness
 ## Usage
 
 ```bash
-# Full audit — all 7 pillars
+# Full audit — all 8 pillars
 /production-readiness
 
 # Run specific pillars only
@@ -51,7 +52,7 @@ claude --plugin-dir ./production-readiness
 /production-readiness --port=3000
 ```
 
-**Pillar names for `--only` / `--skip`:** `security`, `visual`, `quality`, `testing`, `build`, `errors`, `performance`
+**Pillar names for `--only` / `--skip`:** `security`, `visual`, `quality`, `testing`, `build`, `errors`, `performance`, `accessibility`
 
 ## How It Works
 
@@ -62,19 +63,21 @@ Phase 1: DETECT
 ├── Checks for cached results from previous runs
 └── Shows summary table + cache status before proceeding
 
-Phase 2-7: AUDIT
+Phase 2-8: AUDIT
 ├── Skips phases with valid cached results (no relevant files changed)
 ├── Reruns phases where source files changed since last audit
+├── Runs phases in parallel where possible for faster execution
 ├── Takes screenshots if Playwright is available (Visual QA)
+├── Checks accessibility (semantic HTML, ARIA, keyboard nav, contrast)
 └── Collects all findings with severity levels
 
-Phase 8: REPORT
+Phase 9: REPORT
 ├── Merges fresh and cached results into a unified report
 ├── Labels each phase as Fresh or Cached with date
 ├── Verdict: READY / NEEDS FIXES / BLOCKED
 └── Prioritized next steps
 
-Phase 9: SAVE
+Phase 10: SAVE
 └── Caches all results for future incremental reruns
 ```
 
@@ -113,6 +116,7 @@ On a cached rerun, Phase 1 shows which phases will rerun and which are cached:
 | Config & Build | CACHED     | No relevant files changed      |
 | Visual QA      | RERUNNING  | UI components changed          |
 | Performance    | CACHED     | No relevant files changed      |
+| Accessibility  | RERUNNING  | UI components changed          |
 ```
 
 ### What's Always Fresh
@@ -135,11 +139,13 @@ The plugin detects your tools and adapts automatically. No config file needed.
 
 | Category | Supported |
 |----------|-----------|
-| Frameworks | Next.js, React, Vue, Angular, Svelte, Express, Fastify, Django, Flask, Rails, Go, Rust |
+| Frameworks | Next.js, React, Vue, Angular, Svelte, SvelteKit, Nuxt, Remix, Astro, Express, Fastify, Django, Flask, Rails, Go, Rust |
+| Languages | JavaScript/TypeScript, Python, Go, Rust, Ruby, Java |
 | Package managers | npm, yarn, pnpm, bun |
 | Test runners | Vitest, Jest, Mocha, Playwright, Cypress, pytest, RSpec, Go test |
 | Lint tools | ESLint, Biome, Prettier, Ruff, RuboCop, golangci-lint |
 | ORMs | Prisma, Drizzle, TypeORM, Sequelize, Django ORM, SQLAlchemy, ActiveRecord |
+| Deployment | Docker, Kubernetes, Vercel, Netlify, Fly.io, Render, Heroku, Railway |
 
 ## Example Report Output
 
@@ -147,7 +153,7 @@ The plugin detects your tools and adapts automatically. No config file needed.
 # Production Readiness Report
 
 **Project**: my-app
-**Date**: 2026-02-10
+**Date**: 2026-03-23
 **Verdict**: NEEDS FIXES
 
 | Pillar         | Status | Critical | Warnings | Info |
@@ -159,7 +165,8 @@ The plugin detects your tools and adapts automatically. No config file needed.
 | Error Handling | PASS   | 0        | 1        | 1    |
 | Config & Build | PASS   | 0        | 0        | 2    |
 | Performance    | PASS   | 0        | 2        | 1    |
-| **TOTAL**      |        | **1**    | **11**   | **9**|
+| Accessibility  | PASS   | 0        | 3        | 1    |
+| **TOTAL**      |        | **1**    | **14**   | **10**|
 
 ## CRITICAL Issues
 ### [CRITICAL] Hardcoded API key in source
@@ -212,14 +219,17 @@ production-readiness/
 │       ├── report-format.md     # Report template, verdict logic, cached labels
 │       └── phases/
 │           ├── 01-detect.md     # Phase 1: Detection + cache status check
-│           ├── 02-security.md   # Phase 2: Security audit (10 checks)
+│           ├── 02-security.md   # Phase 2: Security audit (12 checks)
 │           ├── 03-quality.md    # Phase 3: Code quality (5 checks)
 │           ├── 04-testing.md    # Phase 4: Testing (3 checks)
 │           ├── 05-errors.md     # Phase 5: Error handling & observability (5 checks)
-│           ├── 06-build.md      # Phase 6: Configuration & build (5 checks)
+│           ├── 06-build.md      # Phase 6: Configuration & build (9 checks)
 │           ├── 07-visual.md     # Phase 7: Visual QA (2 checks)
-│           ├── 08-performance.md  # Phase 8: Performance (4 checks)
-│           └── 09-save.md       # Phase 9: Save results
+│           ├── 08-performance.md  # Phase 8: Performance (9 checks)
+│           ├── 09-save.md       # Phase 9: Save results
+│           └── 10-accessibility.md  # Phase 10: Accessibility (6 checks)
+├── tests/
+│   └── validate-plugin.sh    # Plugin structure validation tests
 ├── .github/
 │   └── workflows/
 │       └── validate.yml      # CI: validates plugin structure
@@ -242,7 +252,7 @@ Common ways to contribute:
 - Add new checks to existing pillars
 - Add support for more frameworks/tools in the detection phase
 - Improve severity calibration (fewer false positives)
-- Add new pillars (accessibility, i18n, etc.)
+- Add new pillars (i18n, SEO, etc.)
 
 ## License
 

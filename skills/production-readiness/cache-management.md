@@ -58,6 +58,7 @@ A phase reruns if ANY changed file matches its patterns:
 | build | `src/**`, `app/**`, `lib/**`, `*.config.*`, `package.json`, `*lock*`, `tsconfig*`, `public/**` |
 | visual | `src/**`, `app/**`, `components/**`, `styles/**`, `*.css`, `*.scss`, `public/**`, `package.json` |
 | performance | `src/**`, `app/**`, `lib/**`, `package.json`, `*.config.*` |
+| accessibility | `src/**`, `app/**`, `components/**`, `*.css`, `*.scss`, `*.html`, `*.jsx`, `*.tsx`, `*.vue`, `*.svelte` |
 
 ### Special Rules
 

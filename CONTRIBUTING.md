@@ -4,7 +4,7 @@ Thanks for your interest in improving this plugin! This guide covers how to cont
 
 ## How the Plugin Works
 
-This is a **Claude Code plugin** — it's not traditional software with runtime code. The core is a single markdown file (`skills/production-readiness/SKILL.md`) that acts as instructions for Claude. When a user runs `/production-readiness`, Claude reads SKILL.md and follows its instructions to audit the project.
+This is a **Claude Code plugin** — it's not traditional software with runtime code. The core is a set of modular markdown files under `skills/production-readiness/`. The hub file `SKILL.md` defines the role, arguments, execution flow, and guidelines, and references individual phase files in `phases/` for each audit pillar. When a user runs `/production-readiness`, Claude reads SKILL.md, which pulls in the relevant phase files to audit the project.
 
 This means:
 - Changes are mostly **editing markdown** (the skill instructions)
@@ -48,9 +48,17 @@ git checkout -b feat/add-accessibility-checks
 
 Use prefixes: `feat/`, `fix/`, `docs/`, `refactor/`
 
-### 3. Edit SKILL.md
+### 3. Edit the Relevant File
 
-The skill file is at `skills/production-readiness/SKILL.md`. It has a consistent structure:
+The skill is modular. Choose what to edit based on your change:
+
+- **Adding or modifying checks within an existing pillar** — edit the relevant phase file in `skills/production-readiness/phases/` (e.g., `02-security.md` for security checks, `04-testing.md` for testing checks).
+- **Adding a new pillar** — create a new phase file (e.g., `10-accessibility.md`) in `phases/` and reference it from `SKILL.md`.
+- **Changing execution flow, arguments, or guidelines** — edit `skills/production-readiness/SKILL.md`.
+- **Changing the report format** — edit `skills/production-readiness/report-format.md`.
+- **Changing cache behavior** — edit `skills/production-readiness/cache-management.md`.
+
+Each phase file has a consistent structure:
 
 ```markdown
 ## PHASE N: PILLAR NAME
@@ -120,17 +128,32 @@ Open a PR with:
 ```
 production-readiness/
 ├── .claude-plugin/
-│   ├── plugin.json           # Plugin name, version, description
-│   └── marketplace.json      # Marketplace distribution config
+│   ├── plugin.json            # Plugin name, version, description
+│   └── marketplace.json       # Marketplace distribution config
 ├── skills/
 │   └── production-readiness/
-│       └── SKILL.md          # THE skill — this is where 95% of changes go
+│       ├── SKILL.md           # Hub: role, args, execution flow, guidelines
+│       ├── cache-management.md  # Incremental caching logic
+│       ├── report-format.md   # Report output format
+│       └── phases/            # One file per audit pillar
+│           ├── 01-detect.md
+│           ├── 02-security.md
+│           ├── 03-quality.md
+│           ├── 04-testing.md
+│           ├── 05-errors.md
+│           ├── 06-build.md
+│           ├── 07-visual.md
+│           ├── 08-performance.md
+│           ├── 09-save.md
+│           └── 10-accessibility.md
+├── tests/
+│   └── validate-plugin.sh     # Plugin validation tests
 ├── .github/
 │   └── workflows/
-│       └── validate.yml      # CI checks
-├── CONTRIBUTING.md            # This file
-├── LICENSE                    # MIT
-└── README.md                  # User-facing docs
+│       └── validate.yml       # CI checks
+├── CONTRIBUTING.md             # This file
+├── LICENSE                     # MIT
+└── README.md                   # User-facing docs
 ```
 
 ## Questions?
