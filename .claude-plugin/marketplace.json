@@ -4,7 +4,7 @@
     "name": "Meghshyam Sonar"
   },
   "metadata": {
-    "description": "Production readiness audit plugin for Claude Code — 7-pillar analysis covering security, visual QA, code quality, testing, error handling, configuration, and performance.",
+    "description": "Production readiness audit plugin for Claude Code — 8-pillar analysis with 60+ checks covering security, visual QA, code quality, testing, error handling, configuration, performance, and accessibility.",
     "version": "2.0.0"
   },
   "plugins": [
