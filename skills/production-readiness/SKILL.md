@@ -1,15 +1,15 @@
 ---
 name: production-readiness
-description: Run a comprehensive production readiness audit. Use when a user wants to check if their project is ready for deployment. Covers security, visual QA, code quality, testing, error handling, configuration/build, and performance.
+description: Run a comprehensive production readiness audit. Use when a user wants to check if their project is ready for deployment. Covers security, visual QA, code quality, testing, error handling, configuration/build, performance, and accessibility.
 user-invocable: true
 disable-model-invocation: true
-allowed-tools: "Read, Edit, Write, Glob, Grep, Bash(npm *), Bash(npx *), Bash(yarn *), Bash(pnpm *), Bash(bun *), Bash(git *), Bash(cat *), Bash(ls *), Bash(node *), Bash(tsc *), Bash(pwd), Bash(which *), Bash(head *), Bash(wc *), Bash(curl *), Bash(playwright *), Task, WebFetch"
+allowed-tools: "Read, Edit, Write, Glob, Grep, Bash(npm *), Bash(npx *), Bash(yarn *), Bash(pnpm *), Bash(bun *), Bash(git *), Bash(node *), Bash(tsc *), Bash(pwd), Bash(which *), Bash(wc *), Bash(curl *), Bash(playwright *), Task, WebFetch, Agent, TaskCreate, TaskUpdate"
 argument-hint: "[--skip=phase1,phase2] [--only=security,visual] [--fresh] [--cached]"
 ---
 
 # Production Readiness Audit
 
-You are a senior engineer and QA tester performing a final production readiness review. Your job is to systematically evaluate the project across 7 pillars and produce an actionable report.
+You are a senior engineer and QA tester performing a final production readiness review. Your job is to systematically evaluate the project across 8 pillars and produce an actionable report.
 
 ## Arguments
 
@@ -19,15 +19,30 @@ You are a senior engineer and QA tester performing a final production readiness 
   - `--port=NNNN` — override dev server port (default: auto-detect)
   - `--fresh` — ignore any cached results, run all phases from scratch
   - `--cached` — display the last cached report without running anything (quick review)
-  - No arguments = run all 7 phases (with smart caching if available)
+  - No arguments = run all 8 phases (with smart caching if available)
 
-Phase names: `security`, `visual`, `quality`, `testing`, `build`, `errors`, `performance`
+Phase names: `security`, `visual`, `quality`, `testing`, `build`, `errors`, `performance`, `accessibility`
 
 ---
 
 ## Execution Flow
 
-Execute the following phases in order. Each phase has detailed instructions in its linked file.
+### Progress Tracking
+
+Before starting, create tasks for each phase that will run using TaskCreate. Update each task to `in_progress` when starting and `completed` when done. This gives the user real-time visibility into audit progress.
+
+### Parallel Execution Strategy
+
+After Phase 1 (Detection) completes, the following phases are **independent** and can run concurrently:
+- **Group A**: Security (Phase 2) + Code Quality (Phase 3) + Error Handling (Phase 5)
+- **Group B**: Testing (Phase 4) — may need dev server running
+- **Group C**: Configuration & Build (Phase 6)
+- **Group D**: Performance (Phase 8) + Accessibility (Phase 10)
+- **Group E**: Visual QA (Phase 7) — requires build to pass and dev server running
+
+Run Group A, B, C, and D concurrently where possible. Group E depends on a successful build (Phase 6). Use the Agent tool to dispatch independent phase groups as subagents for faster execution.
+
+Phase 9 (Save) always runs last after all other phases complete.
 
 ### Phase 1: Detection & Cache Status
 
@@ -37,7 +52,7 @@ Detect the project stack (framework, package manager, test runner, lint tool, OR
 
 ### Phase 2: Security Audit
 
-10 checks covering hardcoded secrets, environment safety, dependency vulnerabilities, input validation, authentication, rate limiting, security headers, error exposure, SQL injection, and XSS.
+12 checks covering hardcoded secrets, environment safety, dependency vulnerabilities, input validation, authentication, rate limiting, security headers, error exposure, SQL injection, XSS, CORS configuration, and dependency licenses.
 
 → See [phases/02-security.md](phases/02-security.md)
 
@@ -61,7 +76,7 @@ Detect the project stack (framework, package manager, test runner, lint tool, OR
 
 ### Phase 6: Configuration & Build
 
-5 checks covering build verification, environment documentation, source maps, development leaks, and HTTPS redirects.
+9 checks covering build verification, environment documentation, source maps, development leaks, HTTPS redirects, Docker configuration, Docker Compose security, container orchestration, and platform deployment configs.
 
 → See [phases/06-build.md](phases/06-build.md)
 
@@ -73,7 +88,7 @@ Screenshot collection and visual inspection at desktop (1440x900) and mobile (37
 
 ### Phase 8: Performance (Static Analysis)
 
-4 checks covering image optimization, bundle size, caching headers, and database query patterns (N+1 detection).
+9 checks covering image optimization, bundle size, caching headers, database query patterns, lazy loading, Core Web Vitals, font optimization, third-party scripts, and API response size.
 
 → See [phases/08-performance.md](phases/08-performance.md)
 
@@ -82,6 +97,12 @@ Screenshot collection and visual inspection at desktop (1440x900) and mobile (37
 Cache all results for future incremental reruns and write the report file. This phase is silent — not included in the report.
 
 → See [phases/09-save.md](phases/09-save.md)
+
+### Phase 10: Accessibility
+
+6 checks covering semantic HTML, ARIA labels, keyboard navigation, color contrast, screen reader support, and automated accessibility testing. Applies to frontend projects only.
+
+> See [phases/10-accessibility.md](phases/10-accessibility.md)
 
 ---
 
@@ -101,7 +122,7 @@ Cache all results for future incremental reruns and write the report file. This 
 5. **Adapt to the stack**: If a check doesn't apply to the detected stack, skip it and note why.
 6. **Respect .gitignore**: Never scan node_modules, build outputs, or other ignored directories.
 7. **Time-box visual QA**: If there are more than 30 pages, prioritize landing pages, auth flows, and main user journeys. Note which pages were skipped.
-8. **Run phases in order**: Detection must complete before other phases. Security and Code Quality can run conceptually in sequence. Build must succeed before Visual QA (if build is needed to start the app).
+8. **Parallelize after Detection**: Detection (Phase 1) must complete first. Then dispatch independent phase groups concurrently using the Agent tool as subagents. Build must succeed before Visual QA. Phase 9 (Save) always runs last.
 9. **Handle failures gracefully**: If a tool or command fails, note it in the report and continue with other phases. Don't let one failure block the entire audit.
 10. **Use parallel tool calls**: When checking multiple independent things (e.g., different security patterns), use parallel grep/glob calls to speed up the audit.
 11. **Cache conservatively**: Only use cached results when confident nothing changed. When in doubt, rerun the phase. Production readiness must not be compromised for speed.

@@ -26,6 +26,8 @@ Run these checks in parallel where possible:
 
 10. **CI/CD**: Check for `.github/workflows/`, `.gitlab-ci.yml`, `Jenkinsfile`, `Dockerfile`, `vercel.json`, `netlify.toml`.
 
+11. **Accessibility tools**: Check for `eslint-plugin-jsx-a11y`, `@axe-core/*`, `pa11y`, `jest-axe` in devDependencies. Check for `.pa11yci` or accessibility config files.
+
 ### Output
 
 Present findings to the user in a summary table before proceeding:
@@ -45,6 +47,7 @@ Present findings to the user in a summary table before proceeding:
 | Dev Server Port  | 3004                            |
 | Build Command    | npm run build                   |
 | CI/CD            | GitHub Actions                  |
+| A11y Tools       | eslint-plugin-jsx-a11y          |
 ```
 
 ### Cache Status Check
@@ -73,4 +76,4 @@ Phases marked CACHED will use results from [date]. Use --fresh to rerun all.
 
 - If no cache exists, note: "No cached results found. Running full audit."
 
-Ask user: "Proceeding with all 7 phases. Reply with phase names to skip, `--fresh` to rerun all, or press Enter to continue."
+Ask user: "Proceeding with all 8 phases. Reply with phase names to skip, `--fresh` to rerun all, or press Enter to continue."

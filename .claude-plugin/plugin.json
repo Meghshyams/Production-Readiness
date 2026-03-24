@@ -1,6 +1,6 @@
 {
   "name": "production-readiness",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Comprehensive production readiness audit — security, visual QA, code quality, testing, error handling, build, and performance checks. Like having a senior engineer + QA tester do a final review before deploy.",
   "author": {
     "name": "Meghshyam Sonar"

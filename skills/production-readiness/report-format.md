@@ -28,6 +28,7 @@ Each phase section header should indicate its source:
 | Error Handling  | PASS/FAIL | N     | N        | N    | Cached (Jan 15)     |
 | Config & Build  | PASS/FAIL | N     | N        | N    | Fresh               |
 | Performance     | PASS/FAIL | N     | N        | N    | Cached (Jan 15)     |
+| Accessibility   | PASS/FAIL | N     | N        | N    | Fresh               |
 | **TOTAL**       |        | **N**    | **N**    | **N**|                     |
 
 ## Verdict Logic

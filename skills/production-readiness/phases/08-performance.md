@@ -29,3 +29,43 @@ If ORM is detected:
 - Check for missing `select` (fetching all columns when few needed)
 - Check for missing pagination on list endpoints
 - **Severity**: WARNING for likely N+1 queries
+
+### 8.5 Lazy Loading
+
+- Check for `loading="lazy"` on images below the fold
+- Check for dynamic imports on heavy components (`React.lazy`, `next/dynamic`, `defineAsyncComponent` in Vue)
+- Check for route-level code splitting
+- **Severity**: INFO with specific suggestions
+
+### 8.6 Core Web Vitals Monitoring
+
+- Check if Web Vitals tracking is configured:
+  - `web-vitals` package, `next/web-vitals`, `@vercel/analytics`
+  - Custom performance observer for LCP, FID/INP, CLS
+- Check for `reportWebVitals` function in Next.js
+- Check for performance monitoring in error tracking (Sentry performance, DataDog RUM)
+- **Severity**: INFO — recommended for production observability
+
+### 8.7 Font Optimization
+
+- Search CSS for `@font-face` declarations without `font-display: swap` (or `optional`)
+- Check for font preloading: `<link rel="preload" as="font">`
+- Check Next.js `next/font` usage (auto-optimized)
+- Look for large font files (multiple weights/styles loaded when few are used)
+- **Severity**: INFO
+
+### 8.8 Third-Party Scripts
+
+- Search for external `<script>` tags loaded synchronously (blocking render)
+- Check for analytics, chat widgets, marketing pixels loaded without `async` or `defer`
+- Look for Google Tag Manager, Intercom, HubSpot, etc. and check loading strategy
+- Check for `next/script` with `strategy` prop in Next.js
+- **Severity**: WARNING for synchronous third-party scripts in critical path
+
+### 8.9 API Response Size
+
+- Check API routes for endpoints that return full objects without field selection
+- Look for list endpoints without pagination (`limit`, `offset`, `cursor`)
+- Check for large JSON responses (returning nested relations when not needed)
+- Look for GraphQL over-fetching patterns (requesting all fields)
+- **Severity**: WARNING for unpaginated list endpoints, INFO for over-fetching

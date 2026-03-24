@@ -35,6 +35,7 @@ required_files=(
   "$SKILL_DIR/phases/07-visual.md"
   "$SKILL_DIR/phases/08-performance.md"
   "$SKILL_DIR/phases/09-save.md"
+  "$SKILL_DIR/phases/10-accessibility.md"
 )
 
 for f in "${required_files[@]}"; do
@@ -69,7 +70,7 @@ for field in "name:" "description:" "user-invocable:" "allowed-tools:"; do
 done
 
 # -------------------------------------------------------
-section "3. All 7 pillars referenced in SKILL.md"
+section "3. All 8 pillars referenced in SKILL.md"
 # -------------------------------------------------------
 pillars=(
   "Security"
@@ -79,6 +80,7 @@ pillars=(
   "Configuration & Build"
   "Visual QA"
   "Performance"
+  "Accessibility"
 )
 
 for pillar in "${pillars[@]}"; do
@@ -119,7 +121,7 @@ done
 # -------------------------------------------------------
 section "5. Phase files are non-empty and have headings"
 # -------------------------------------------------------
-for i in 01 02 03 04 05 06 07 08 09; do
+for i in 01 02 03 04 05 06 07 08 09 10; do
   phase_file="$SKILL_DIR/phases/${i}-*.md"
   # shellcheck disable=SC2086
   actual=$(ls $phase_file 2>/dev/null | head -1)
@@ -143,8 +145,8 @@ done
 # -------------------------------------------------------
 section "6. Check counts in phase files"
 # -------------------------------------------------------
-# Phase 2 (security) should have checks 2.1 through 2.10
-for n in 1 2 3 4 5 6 7 8 9 10; do
+# Phase 2 (security) should have checks 2.1 through 2.12
+for n in 1 2 3 4 5 6 7 8 9 10 11 12; do
   if grep -q "### 2\.$n " "$SKILL_DIR/phases/02-security.md"; then
     pass "Security check 2.$n present"
   else
@@ -179,8 +181,8 @@ for n in 1 2 3 4 5; do
   fi
 done
 
-# Phase 6 (build) should have 6.1-6.5
-for n in 1 2 3 4 5; do
+# Phase 6 (build) should have 6.1-6.9
+for n in 1 2 3 4 5 6 7 8 9; do
   if grep -q "### 6\.$n " "$SKILL_DIR/phases/06-build.md"; then
     pass "Build check 6.$n present"
   else
@@ -197,12 +199,21 @@ for n in 1 2; do
   fi
 done
 
-# Phase 8 (performance) should have 8.1-8.4
-for n in 1 2 3 4; do
+# Phase 8 (performance) should have 8.1-8.9
+for n in 1 2 3 4 5 6 7 8 9; do
   if grep -q "### 8\.$n " "$SKILL_DIR/phases/08-performance.md"; then
     pass "Performance check 8.$n present"
   else
     fail "Performance check 8.$n missing"
+  fi
+done
+
+# Phase 10 (accessibility) should have 10.1-10.6
+for n in 1 2 3 4 5 6; do
+  if grep -q "### 10\.$n " "$SKILL_DIR/phases/10-accessibility.md"; then
+    pass "Accessibility check 10.$n present"
+  else
+    fail "Accessibility check 10.$n missing"
   fi
 done
 
@@ -260,7 +271,7 @@ done
 section "10. Cache-management has phase mapping table"
 # -------------------------------------------------------
 cache_file="$SKILL_DIR/cache-management.md"
-for phase in security quality testing errors build visual performance; do
+for phase in security quality testing errors build visual performance accessibility; do
   if grep -q "| $phase " "$cache_file"; then
     pass "Cache mapping includes $phase"
   else

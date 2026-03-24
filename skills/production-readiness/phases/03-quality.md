@@ -8,6 +8,10 @@ Search source code (exclude tests, node_modules, .next, dist) for:
 - `console.warn(` — count occurrences (INFO level, often intentional)
 - `debugger` statements — CRITICAL (will pause execution in browser)
 - `alert(` — WARNING in non-test files
+- Python: `print(` in non-test files, `breakpoint()`, `pdb.set_trace()`, `import pdb`
+- Go: `fmt.Println(` in non-test files (should use structured logging)
+- Rust: `println!(` / `dbg!(` in non-test files
+- Ruby: `puts` / `binding.pry` / `byebug` in non-test files
 
 Report count per file. **Severity**: WARNING for console.log in production paths, CRITICAL for `debugger`.
 
@@ -26,6 +30,10 @@ Run the detected lint tool:
 - ESLint: `npx eslint . --format json` or `npm run lint`
 - Biome: `npx biome check .`
 - Other: whatever the project uses
+- Python: `ruff check .` or `flake8` or `pylint`
+- Go: `golangci-lint run`
+- Rust: `cargo clippy`
+- Ruby: `rubocop`
 
 Report: error count, warning count. **Severity**: CRITICAL if lint errors, WARNING if warnings.
 
@@ -35,6 +43,11 @@ If TypeScript project:
 - Run `npx tsc --noEmit` (or `npm run typecheck` if script exists)
 - Report error count
 - **Severity**: CRITICAL if type errors
+
+Language-specific type/static analysis:
+- Python: `mypy .` or `pyright` (if configured)
+- Go: `go vet ./...` (built-in static analysis)
+- Rust: type checking is part of `cargo check`
 
 ### 3.5 Unused Dependencies
 

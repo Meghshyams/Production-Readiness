@@ -16,6 +16,14 @@ Patterns to grep for:
 - secret\s*[:=]\s*['"][^'"]+['"]        (hardcoded secrets — exclude .env.example)
 - -----BEGIN (RSA |EC |DSA )?PRIVATE KEY  (private keys in source)
 - Bearer\s+[a-zA-Z0-9\-._~+/]+=*        (bearer tokens)
+- sk-ant-[a-zA-Z0-9]{20,}              (Anthropic API keys)
+- xoxb-[0-9]+-[a-zA-Z0-9]+             (Slack bot tokens)
+- xoxp-[0-9]+-[a-zA-Z0-9]+             (Slack user tokens)
+- glpat-[a-zA-Z0-9\-_]{20,}            (GitLab personal access tokens)
+- vercel_[a-zA-Z0-9]{24,}              (Vercel tokens)
+- sbp_[a-zA-Z0-9]{40,}                 (Supabase service role keys)
+- SG\.[a-zA-Z0-9\-_]+\.[a-zA-Z0-9\-_]+  (SendGrid API keys)
+- eyJ[a-zA-Z0-9]{30,}\.eyJ[a-zA-Z0-9]{30,}  (JWT tokens — WARNING level)
 ```
 
 **Exclude from scanning**: `.env.example`, `*.test.*`, `*.spec.*`, `*.md`, documentation files, lock files.
@@ -35,6 +43,11 @@ Run the appropriate audit command:
 - yarn: `yarn audit --json`
 - pnpm: `pnpm audit --json`
 - bun: `bun audit` (if available)
+- pip: `pip audit` or `safety check` (Python)
+- Go: `govulncheck ./...` or `nancy` (Go modules)
+- Rust: `cargo audit` (Rust)
+- Ruby: `bundle audit check --update` (Ruby)
+- Java: check for OWASP dependency-check or Snyk integration
 
 Report: count of critical/high/moderate/low vulnerabilities.
 **Severity**: CRITICAL if any critical vulnerabilities, WARNING if high.
@@ -52,6 +65,10 @@ Report: count of critical/high/moderate/low vulnerabilities.
 - Check session config: look for `httpOnly`, `secure`, `sameSite` in cookie/session settings
 - Check for CSRF protection: look for csrf tokens, `sameSite` cookies, or CSRF middleware
 - Check NextAuth/Auth.js config for secure settings
+- Django: check for `django.contrib.auth`, `CSRF_COOKIE_SECURE`, `SESSION_COOKIE_SECURE`, `SESSION_COOKIE_HTTPONLY` in settings.py
+- Flask: check for Flask-Login, Flask-WTF CSRF, `SESSION_COOKIE_SECURE`
+- Rails: check for `has_secure_password`, `protect_from_forgery`, `config.force_ssl`
+- Go: check for `golang.org/x/crypto/bcrypt`, CSRF middleware (gorilla/csrf)
 - **Severity**: CRITICAL if passwords stored in plain text, WARNING for missing CSRF
 
 ### 2.6 Rate Limiting
@@ -94,3 +111,20 @@ Also check `next.config.js`/`next.config.mjs` headers config, Express helmet, et
 - Search for `v-html` (Vue) without sanitization
 - Check if framework provides default escaping (React JSX does)
 - **Severity**: CRITICAL if unsanitized user input in `dangerouslySetInnerHTML`
+
+### 2.11 CORS Configuration
+
+- Search middleware, server config, or framework config for CORS settings
+- Check for `Access-Control-Allow-Origin: *` — WARNING if used in production (allows any origin)
+- Check for wildcard origins with credentials (`Access-Control-Allow-Credentials: true` with `*` origin) — CRITICAL
+- Look for CORS middleware: `cors()`, `django-cors-headers`, `rack-cors`, etc.
+- Check if allowed origins are restricted to known domains
+- **Severity**: WARNING if CORS is too permissive, CRITICAL if credentials with wildcard
+
+### 2.12 Dependency License Audit
+
+- Run `npx license-checker --summary` or equivalent
+- Flag GPL/AGPL licenses in dependencies for commercial projects — WARNING
+- Check for `license` field in package.json — INFO if missing
+- Note: this is an INFO-level check, not blocking
+- **Severity**: WARNING for copyleft licenses in commercial code, INFO for missing license info

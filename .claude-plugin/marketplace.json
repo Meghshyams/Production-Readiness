@@ -5,14 +5,14 @@
   },
   "metadata": {
     "description": "Production readiness audit plugin for Claude Code — 7-pillar analysis covering security, visual QA, code quality, testing, error handling, configuration, and performance.",
-    "version": "1.0.0"
+    "version": "2.0.0"
   },
   "plugins": [
     {
       "name": "production-readiness",
       "source": ".",
       "description": "Run a comprehensive production readiness audit on any project",
-      "version": "1.0.0"
+      "version": "2.0.0"
     }
   ]
 }
