@@ -1,11 +1,12 @@
 {
   "name": "production-readiness",
   "version": "2.0.0",
-  "description": "Comprehensive production readiness audit — security, visual QA, code quality, testing, error handling, build, and performance checks. Like having a senior engineer + QA tester do a final review before deploy.",
+  "description": "Comprehensive production readiness audit — 60+ checks across security, visual QA, code quality, testing, error handling, build, performance, and accessibility. Like having a senior engineer + QA tester do a final review before deploy.",
   "author": {
     "name": "Meghshyam Sonar"
   },
   "repository": "https://github.com/Meghshyams/production-readiness",
+  "homepage": "https://github.com/Meghshyams/production-readiness",
   "license": "MIT",
   "keywords": [
     "production",
@@ -16,6 +17,9 @@
     "visual-qa",
     "code-quality",
     "testing",
-    "deployment"
+    "deployment",
+    "accessibility",
+    "performance",
+    "devops"
   ]
 }
