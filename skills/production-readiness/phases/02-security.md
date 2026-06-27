@@ -1,4 +1,4 @@
-## Phase 2: Security Audit
+## Phase 2: Security & Supply Chain Audit
 
 ### 2.1 Hardcoded Secrets
 
@@ -32,6 +32,7 @@ Patterns to grep for:
 ### 2.2 Environment Safety
 
 - Check if `.env` is in `.gitignore` — CRITICAL if missing
+- Verify the ignore rule also covers `.env.*.local`, `.env.local`, and `.env.production` (a bare `.env` rule does NOT match these) — WARNING if these can leak
 - Check if `.env.example` or `.env.sample` exists — WARNING if missing
 - If `.env.example` exists, read it and flag any lines that look like real values (not placeholders)
 - Check if any `.env.local` or `.env.production` files are tracked in git: `git ls-files '*.env*'`
@@ -128,3 +129,35 @@ Also check `next.config.js`/`next.config.mjs` headers config, Express helmet, et
 - Check for `license` field in package.json — INFO if missing
 - Note: this is an INFO-level check, not blocking
 - **Severity**: WARNING for copyleft licenses in commercial code, INFO for missing license info
+
+### 2.13 Git History Secret Scanning
+
+A secret committed and later "removed" still lives in git history and is effectively public once pushed.
+
+- Scan history for high-signal secret patterns: `git log -p --all -S 'sk-' -S 'AKIA' -S 'PRIVATE KEY' --source` (sample; adapt patterns from 2.1). For a faster pass, grep the patterns over `git rev-list --all` blobs or recommend a dedicated scanner.
+- If `gitleaks` or `trufflehog` is available, run it (`gitleaks detect --no-banner`) and report findings.
+- A current-tree-only scan (2.1) is NOT sufficient — note explicitly whether history was scanned.
+- **Severity**: CRITICAL for any live secret found in history (it must be rotated, not just deleted); INFO if no history-scanning tool is available and only a pattern sample was run.
+
+### 2.14 Lockfile Integrity & Dependency Pinning
+
+- Confirm a lockfile exists and is committed (`package-lock.json` / `yarn.lock` / `pnpm-lock.yaml` / `bun.lock` / `poetry.lock` / `Cargo.lock` / `Gemfile.lock` / `go.sum`) — WARNING if missing (non-reproducible installs).
+- Check CI installs use the frozen-lockfile path (`npm ci`, `pnpm install --frozen-lockfile`, `yarn install --immutable`, `bun install --frozen-lockfile`) rather than a plain `install` that can mutate the lockfile — WARNING if CI uses a mutating install.
+- Flag dependencies pinned to floating ranges on security-sensitive packages where a pinned version would be safer — INFO.
+- Check for risky install-time execution surface: `postinstall`/`preinstall` scripts in `package.json` and dependencies — INFO (supply-chain execution vector).
+- **Severity**: WARNING for missing/uncommitted lockfile or non-frozen CI installs.
+
+### 2.15 Build Provenance & SBOM
+
+- Check whether the project produces a Software Bill of Materials (SBOM) — `syft`, `cyclonedx`, `npm sbom`, or a committed `*.cdx.json` / `*.spdx.json` — INFO if absent.
+- Check CI/CD for artifact signing or provenance attestation (SLSA provenance, `cosign`, npm `--provenance`, GitHub artifact attestations) — INFO if absent.
+- Check whether release/commit signing is used (signed tags/commits) — INFO.
+- These are maturity signals, not blockers, but increasingly expected for software shipped to others.
+- **Severity**: INFO — recommend SBOM generation and provenance for distributed software.
+
+### 2.16 Webhook & Callback Signature Verification
+
+- If the app receives inbound webhooks (Stripe, GitHub, Slack, Clerk, payment/IPN, third-party callbacks), check that the handler verifies the signature (e.g., `stripe.webhooks.constructEvent`, HMAC comparison, `svix` verification) before trusting the payload.
+- Check that signature comparison is constant-time (`crypto.timingSafeEqual` / framework helper) rather than `===`.
+- Check that the raw request body is used for verification (not a re-serialized/parsed body, which breaks HMAC).
+- **Severity**: CRITICAL for an unverified webhook that triggers privileged actions (fulfilling orders, granting access); WARNING for non-constant-time comparison.

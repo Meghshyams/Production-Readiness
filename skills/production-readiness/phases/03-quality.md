@@ -27,10 +27,11 @@ Search for comments containing:
 ### 3.3 Lint
 
 Run the detected lint tool:
-- ESLint: `npx eslint . --format json` or `npm run lint`
-- Biome: `npx biome check .`
+- ESLint: `npx eslint . --format json` or `npm run lint`. Note: ESLint 9+ uses flat config (`eslint.config.js`/`.mjs`/`.ts`); legacy `.eslintrc*` is deprecated. If both exist, or an `.eslintrc*` lingers under ESLint 9, flag it — INFO.
+- Biome: `npx biome check .` (modern all-in-one lint+format; common replacement for ESLint+Prettier)
+- Oxlint: `npx oxlint` if `.oxlintrc.json` present
 - Other: whatever the project uses
-- Python: `ruff check .` or `flake8` or `pylint`
+- Python: `ruff check .` (preferred) or `flake8` / `pylint`
 - Go: `golangci-lint run`
 - Rust: `cargo clippy`
 - Ruby: `rubocop`
@@ -55,3 +56,14 @@ Check `package.json` dependencies:
 - Use `npx depcheck` if available, or manually check if key dependencies are imported anywhere
 - Focus on large dependencies that would bloat the bundle
 - **Severity**: INFO for unused dependencies
+
+### 3.6 Security & Anti-Pattern Linting
+
+Beyond style linting, check whether security-focused static analysis is wired up:
+- JS/TS: `eslint-plugin-security`, `eslint-plugin-no-secrets`, or Biome's security rules
+- Python: `bandit`
+- Go: `gosec`
+- Ruby: `brakeman` (Rails)
+- If a security linter is configured, run it and report findings. If none is configured, recommend one — INFO.
+- Also flag obvious dangerous-API usage directly: `eval(`, `new Function(`, `child_process.exec(` with interpolated input, `pickle.loads` on untrusted data.
+- **Severity**: WARNING for dangerous-API usage on untrusted input; INFO if no security linter is configured.

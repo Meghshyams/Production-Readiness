@@ -1,15 +1,15 @@
 ---
 name: production-readiness
-description: Run a comprehensive production readiness audit. Use when a user wants to check if their project is ready for deployment. Covers security, visual QA, code quality, testing, error handling, configuration/build, performance, and accessibility.
+description: Run a comprehensive production readiness audit. Use when a user wants to check if their project is ready for deployment. Covers security & supply chain, visual QA, code quality, testing, error handling & observability, configuration/build, performance, accessibility, and AI/LLM safety.
 user-invocable: true
 disable-model-invocation: true
-allowed-tools: "Read, Edit, Write, Glob, Grep, Bash(npm *), Bash(npx *), Bash(yarn *), Bash(pnpm *), Bash(bun *), Bash(git *), Bash(node *), Bash(tsc *), Bash(pwd), Bash(which *), Bash(wc *), Bash(curl *), Bash(playwright *), Task, WebFetch, Agent, TaskCreate, TaskUpdate"
+allowed-tools: "Read, Edit, Write, Glob, Grep, Bash(npm *), Bash(npx *), Bash(yarn *), Bash(pnpm *), Bash(bun *), Bash(git *), Bash(node *), Bash(tsc *), Bash(pwd), Bash(which *), Bash(wc *), Bash(curl *), Bash(playwright *), Agent, WebFetch, TaskCreate, TaskUpdate, TaskStop"
 argument-hint: "[--skip=phase1,phase2] [--only=security,visual] [--fresh] [--cached]"
 ---
 
 # Production Readiness Audit
 
-You are a senior engineer and QA tester performing a final production readiness review. Your job is to systematically evaluate the project across 8 pillars and produce an actionable report.
+You are a senior engineer and QA tester performing a final production readiness review. Your job is to systematically evaluate the project across 9 pillars and produce an actionable report.
 
 ## Arguments
 
@@ -19,9 +19,9 @@ You are a senior engineer and QA tester performing a final production readiness 
   - `--port=NNNN` — override dev server port (default: auto-detect)
   - `--fresh` — ignore any cached results, run all phases from scratch
   - `--cached` — display the last cached report without running anything (quick review)
-  - No arguments = run all 8 phases (with smart caching if available)
+  - No arguments = run all 9 phases (with smart caching if available)
 
-Phase names: `security`, `visual`, `quality`, `testing`, `build`, `errors`, `performance`, `accessibility`
+Phase names: `security`, `visual`, `quality`, `testing`, `build`, `errors`, `performance`, `accessibility`, `ai`
 
 ---
 
@@ -34,13 +34,13 @@ Before starting, create tasks for each phase that will run using TaskCreate. Upd
 ### Parallel Execution Strategy
 
 After Phase 1 (Detection) completes, the following phases are **independent** and can run concurrently:
-- **Group A**: Security (Phase 2) + Code Quality (Phase 3) + Error Handling (Phase 5)
+- **Group A**: Security & Supply Chain (Phase 2) + Code Quality (Phase 3) + Error Handling & Observability (Phase 5)
 - **Group B**: Testing (Phase 4) — may need dev server running
 - **Group C**: Configuration & Build (Phase 6)
-- **Group D**: Performance (Phase 8) + Accessibility (Phase 10)
+- **Group D**: Performance (Phase 8) + Accessibility (Phase 10) + AI/LLM Safety (Phase 11)
 - **Group E**: Visual QA (Phase 7) — requires build to pass and dev server running
 
-Run Group A, B, C, and D concurrently where possible. Group E depends on a successful build (Phase 6). Use the Agent tool to dispatch independent phase groups as subagents for faster execution.
+Run Group A, B, C, and D concurrently where possible. Group E depends on a successful build (Phase 6). Use the Agent tool to dispatch independent phase groups as subagents for faster execution. AI/LLM Safety (Phase 11) only applies when the project integrates an LLM/AI provider (detected in Phase 1) — skip it with a note otherwise.
 
 Phase 9 (Save) always runs last after all other phases complete.
 
@@ -50,9 +50,9 @@ Detect the project stack (framework, package manager, test runner, lint tool, OR
 
 → See [phases/01-detect.md](phases/01-detect.md)
 
-### Phase 2: Security Audit
+### Phase 2: Security & Supply Chain Audit
 
-12 checks covering hardcoded secrets, environment safety, dependency vulnerabilities, input validation, authentication, rate limiting, security headers, error exposure, SQL injection, XSS, CORS configuration, and dependency licenses.
+16 checks covering hardcoded secrets, environment safety, dependency vulnerabilities, input validation, authentication, rate limiting, security headers, error exposure, SQL injection, XSS, CORS configuration, dependency licenses, git-history secret scanning, lockfile integrity, build provenance/SBOM, and webhook signature verification.
 
 → See [phases/02-security.md](phases/02-security.md)
 
@@ -70,7 +70,7 @@ Detect the project stack (framework, package manager, test runner, lint tool, OR
 
 ### Phase 5: Error Handling & Observability
 
-5 checks covering global error boundaries, error tracking integration, health check endpoints, structured logging, and sensitive data in logs.
+7 checks covering global error boundaries, error tracking integration, health check endpoints, structured logging, sensitive data in logs, distributed tracing (OpenTelemetry) with correlation IDs, and graceful shutdown handling.
 
 → See [phases/05-errors.md](phases/05-errors.md)
 
@@ -100,9 +100,15 @@ Cache all results for future incremental reruns and write the report file. This 
 
 ### Phase 10: Accessibility
 
-6 checks covering semantic HTML, ARIA labels, keyboard navigation, color contrast, screen reader support, and automated accessibility testing. Applies to frontend projects only.
+7 checks covering semantic HTML, ARIA labels, keyboard navigation, color contrast, screen reader support, automated accessibility testing, and WCAG 2.2 criteria (touch-target size, focus-not-obscured, language attributes, media captions). Applies to frontend projects only.
 
 > See [phases/10-accessibility.md](phases/10-accessibility.md)
+
+### Phase 11: AI/LLM Safety
+
+7 checks covering prompt-injection surfaces, secret/PII leakage into prompts, untrusted LLM output handling, token/cost guardrails, model & SDK pinning, rate limiting on AI endpoints, and AI provider error/timeout handling. Applies only when an LLM/AI provider integration is detected.
+
+> See [phases/11-ai-llm.md](phases/11-ai-llm.md)
 
 ---
 

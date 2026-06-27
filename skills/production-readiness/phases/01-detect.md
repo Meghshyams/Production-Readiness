@@ -28,6 +28,14 @@ Run these checks in parallel where possible:
 
 11. **Accessibility tools**: Check for `eslint-plugin-jsx-a11y`, `@axe-core/*`, `pa11y`, `jest-axe` in devDependencies. Check for `.pa11yci` or accessibility config files.
 
+12. **AI/LLM integration**: Check dependencies for AI SDKs — `openai`, `@anthropic-ai/sdk`, `ai` / `@ai-sdk/*` (Vercel AI SDK), `langchain` / `@langchain/*`, `llamaindex`, `@google/generative-ai` / `@google/genai`, `cohere-ai`, `@mistralai/mistralai`, `ollama`, `replicate`, `groq-sdk`, `@aws-sdk/client-bedrock-runtime`; Python `openai` / `anthropic` / `langchain` / `litellm` / `google-generativeai`. Also grep for model endpoint calls (`chat.completions.create`, `messages.create`, `generateText`, `streamText`). This gates Phase 11 (AI/LLM Safety).
+
+13. **Observability stack**: Check for OpenTelemetry (`@opentelemetry/*`), error tracking (Sentry, DataDog, etc.), and structured loggers (Pino, Winston, structlog). Informs Phase 5.
+
+14. **Deployment target**: Note whether the project targets serverless/edge (Vercel/Netlify functions, Cloudflare Workers, Lambda, `export const runtime = 'edge'`) vs a long-running server/container. Informs Phases 5, 6, and 8.
+
+**Tooling version notes**: capture major versions where they change checks — ESLint (9+ flat config vs legacy `.eslintrc*`), framework majors (Next.js, React, Vue), and lint/format tool (ESLint+Prettier vs Biome vs Oxlint).
+
 ### Output
 
 Present findings to the user in a summary table before proceeding:
@@ -48,7 +56,12 @@ Present findings to the user in a summary table before proceeding:
 | Build Command    | npm run build                   |
 | CI/CD            | GitHub Actions                  |
 | A11y Tools       | eslint-plugin-jsx-a11y          |
+| AI/LLM           | OpenAI + Vercel AI SDK detected |
+| Observability    | Sentry + Pino                   |
+| Deploy Target    | Vercel (serverless + edge)      |
 ```
+
+If no AI/LLM integration is detected, note "AI/LLM: none — Phase 11 will be skipped."
 
 ### Cache Status Check
 
@@ -76,4 +89,4 @@ Phases marked CACHED will use results from [date]. Use --fresh to rerun all.
 
 - If no cache exists, note: "No cached results found. Running full audit."
 
-Ask user: "Proceeding with all 8 phases. Reply with phase names to skip, `--fresh` to rerun all, or press Enter to continue."
+Ask user: "Proceeding with all 9 phases (AI/LLM Safety runs only if an AI integration was detected). Reply with phase names to skip, `--fresh` to rerun all, or press Enter to continue."

@@ -2,26 +2,27 @@
 
 > Like having a senior engineer + QA tester do a final review before you deploy.
 
-A comprehensive production readiness audit for [Claude Code](https://claude.com/claude-code). Run `/production-readiness` on any project to get a structured report covering security, visual QA, code quality, testing, error handling, build configuration, performance, and accessibility — with actionable fixes for every issue found.
+A comprehensive production readiness audit for [Claude Code](https://claude.com/claude-code). Run `/production-readiness` on any project to get a structured report covering security & supply chain, visual QA, code quality, testing, error handling & observability, build configuration, performance, accessibility, and AI/LLM safety — with actionable fixes for every issue found.
 
 ## Why This Exists
 
 Deploying to production is stressful. You check one thing, forget another. Did you leave `console.log` in? Are there hardcoded API keys? Does the mobile layout break? Is the build even passing?
 
-This plugin runs **60+ automated checks** across 8 categories and produces a single, prioritized report. It adapts to whatever tech stack you're using — no configuration needed.
+This plugin runs **70+ automated checks** across 9 categories and produces a single, prioritized report. It adapts to whatever tech stack you're using — no configuration needed.
 
-## The 8 Pillars
+## The 9 Pillars
 
 | # | Pillar | What's Checked |
 |---|--------|---------------|
-| 1 | **Security** | Hardcoded secrets, `.env` safety, dependency vulnerabilities, input validation, auth config, rate limiting, security headers, error exposure, SQL injection, XSS, CORS configuration, dependency licenses |
+| 1 | **Security & Supply Chain** | Hardcoded secrets, `.env` safety, dependency vulnerabilities, input validation, auth config, rate limiting, security headers, error exposure, SQL injection, XSS, CORS, dependency licenses, **git-history secret scanning**, **lockfile integrity**, **SBOM/build provenance**, **webhook signature verification** |
 | 2 | **Visual QA** | Screenshots every page at desktop + mobile viewports, then inspects each for layout issues, spelling mistakes, responsive problems, broken UI, and visual inconsistencies |
-| 3 | **Code Quality** | `console.log` / `debugger` statements, TODO/FIXME comments, lint errors, type errors, unused dependencies |
-| 4 | **Testing** | Runs your test suites, reports pass/fail and coverage, flags untested critical paths (auth, payments, mutations) |
-| 5 | **Error Handling** | Error boundaries, error tracking (Sentry etc.), health check endpoints, structured logging, sensitive data in logs |
-| 6 | **Config & Build** | Build passes, env vars documented, source maps hidden, no dev-only leaks, HTTPS redirects, Docker security, container orchestration, platform deployment configs |
-| 7 | **Performance** | Image optimization, bundle size, caching headers, N+1 query patterns, lazy loading, Core Web Vitals, font optimization, third-party scripts, API response size |
-| 8 | **Accessibility** | Semantic HTML, ARIA labels, keyboard navigation, color contrast, screen reader support, automated a11y testing |
+| 3 | **Code Quality** | `console.log` / `debugger` statements, TODO/FIXME comments, lint errors (ESLint 9 flat config / Biome / Oxlint aware), type errors, unused dependencies, **security linting** |
+| 4 | **Testing** | Runs your test suites (Vitest / Jest / `bun test` / pytest / …), reports pass/fail and coverage, flags untested critical paths, **skipped/`.only` tests, and flakiness signals** |
+| 5 | **Error Handling & Observability** | Error boundaries, error tracking (Sentry etc.), health checks, structured (JSON) logging, sensitive data in logs, **distributed tracing (OpenTelemetry) + correlation IDs**, **graceful shutdown** |
+| 6 | **Config & Build** | Build passes, env vars documented, source maps hidden, no dev-only leaks, HTTPS redirects, Docker security, container orchestration, platform deploy configs, **serverless/edge fitness**, **CI/CD pipeline hygiene** |
+| 7 | **Performance** | Image optimization, bundle size, caching, N+1 query patterns, lazy loading, Core Web Vitals, fonts, third-party scripts, API response size, **compression (Brotli/gzip)**, **DB connection pooling**, **rendering/asset delivery** |
+| 8 | **Accessibility** | Semantic HTML, ARIA, keyboard navigation, color contrast, screen reader support, automated a11y testing, **WCAG 2.2 criteria (target size, focus-not-obscured, accessible auth)**, **language & media captions** |
+| 9 | **AI/LLM Safety** | Prompt-injection surfaces, secret/PII leakage into prompts, untrusted output handling, token/cost guardrails, model & SDK pinning, AI-endpoint reliability, AI observability & moderation _(runs only when an AI integration is detected)_ |
 
 ## Install
 
@@ -39,7 +40,7 @@ claude --plugin-dir ./production-readiness
 ## Usage
 
 ```bash
-# Full audit — all 8 pillars
+# Full audit — all 9 pillars
 /production-readiness
 
 # Run specific pillars only
@@ -52,7 +53,7 @@ claude --plugin-dir ./production-readiness
 /production-readiness --port=3000
 ```
 
-**Pillar names for `--only` / `--skip`:** `security`, `visual`, `quality`, `testing`, `build`, `errors`, `performance`, `accessibility`
+**Pillar names for `--only` / `--skip`:** `security`, `visual`, `quality`, `testing`, `build`, `errors`, `performance`, `accessibility`, `ai`
 
 ## How It Works
 
@@ -63,12 +64,13 @@ Phase 1: DETECT
 ├── Checks for cached results from previous runs
 └── Shows summary table + cache status before proceeding
 
-Phase 2-8: AUDIT
+Phase 2-8 + 10-11: AUDIT
 ├── Skips phases with valid cached results (no relevant files changed)
 ├── Reruns phases where source files changed since last audit
 ├── Runs phases in parallel where possible for faster execution
 ├── Takes screenshots if Playwright is available (Visual QA)
-├── Checks accessibility (semantic HTML, ARIA, keyboard nav, contrast)
+├── Checks accessibility (semantic HTML, ARIA, keyboard nav, contrast, WCAG 2.2)
+├── Runs AI/LLM safety checks if an AI integration is detected
 └── Collects all findings with severity levels
 
 Phase 9: REPORT
@@ -145,7 +147,9 @@ The plugin detects your tools and adapts automatically. No config file needed.
 | Test runners | Vitest, Jest, Mocha, Playwright, Cypress, pytest, RSpec, Go test |
 | Lint tools | ESLint, Biome, Prettier, Ruff, RuboCop, golangci-lint |
 | ORMs | Prisma, Drizzle, TypeORM, Sequelize, Django ORM, SQLAlchemy, ActiveRecord |
-| Deployment | Docker, Kubernetes, Vercel, Netlify, Fly.io, Render, Heroku, Railway |
+| Deployment | Docker, Kubernetes, Vercel, Netlify, Fly.io, Render, Heroku, Railway, Cloudflare Workers, AWS Lambda |
+| AI/LLM SDKs | OpenAI, Anthropic, Vercel AI SDK, LangChain, LlamaIndex, Google Gemini, Mistral, Cohere, Groq, Ollama, Bedrock |
+| Observability | OpenTelemetry, Sentry, DataDog, New Relic, Pino, Winston, structlog |
 
 ## Example Report Output
 
@@ -156,17 +160,18 @@ The plugin detects your tools and adapts automatically. No config file needed.
 **Date**: 2026-03-23
 **Verdict**: NEEDS FIXES
 
-| Pillar         | Status | Critical | Warnings | Info |
-|----------------|--------|----------|----------|------|
-| Security       | FAIL   | 1        | 2        | 0    |
-| Visual QA      | PASS   | 0        | 1        | 3    |
-| Code Quality   | PASS   | 0        | 4        | 2    |
-| Testing        | PASS   | 0        | 1        | 0    |
-| Error Handling | PASS   | 0        | 1        | 1    |
-| Config & Build | PASS   | 0        | 0        | 2    |
-| Performance    | PASS   | 0        | 2        | 1    |
-| Accessibility  | PASS   | 0        | 3        | 1    |
-| **TOTAL**      |        | **1**    | **14**   | **10**|
+| Pillar                  | Status | Critical | Warnings | Info |
+|-------------------------|--------|----------|----------|------|
+| Security & Supply Chain | FAIL   | 1        | 3        | 1    |
+| Visual QA               | PASS   | 0        | 1        | 3    |
+| Code Quality            | PASS   | 0        | 4        | 2    |
+| Testing                 | PASS   | 0        | 1        | 0    |
+| Error & Observability   | PASS   | 0        | 1        | 1    |
+| Config & Build          | PASS   | 0        | 0        | 2    |
+| Performance             | PASS   | 0        | 2        | 1    |
+| Accessibility           | PASS   | 0        | 3        | 1    |
+| AI/LLM Safety           | PASS   | 0        | 1        | 2    |
+| **TOTAL**               |        | **1**    | **16**   | **13**|
 
 ## CRITICAL Issues
 ### [CRITICAL] Hardcoded API key in source
@@ -219,15 +224,16 @@ production-readiness/
 │       ├── report-format.md     # Report template, verdict logic, cached labels
 │       └── phases/
 │           ├── 01-detect.md     # Phase 1: Detection + cache status check
-│           ├── 02-security.md   # Phase 2: Security audit (12 checks)
-│           ├── 03-quality.md    # Phase 3: Code quality (5 checks)
-│           ├── 04-testing.md    # Phase 4: Testing (3 checks)
-│           ├── 05-errors.md     # Phase 5: Error handling & observability (5 checks)
-│           ├── 06-build.md      # Phase 6: Configuration & build (9 checks)
+│           ├── 02-security.md   # Phase 2: Security & supply chain (16 checks)
+│           ├── 03-quality.md    # Phase 3: Code quality (6 checks)
+│           ├── 04-testing.md    # Phase 4: Testing (4 checks)
+│           ├── 05-errors.md     # Phase 5: Error handling & observability (7 checks)
+│           ├── 06-build.md      # Phase 6: Configuration & build (11 checks)
 │           ├── 07-visual.md     # Phase 7: Visual QA (2 checks)
-│           ├── 08-performance.md  # Phase 8: Performance (9 checks)
+│           ├── 08-performance.md  # Phase 8: Performance (12 checks)
 │           ├── 09-save.md       # Phase 9: Save results
-│           └── 10-accessibility.md  # Phase 10: Accessibility (6 checks)
+│           ├── 10-accessibility.md  # Phase 10: Accessibility (8 checks)
+│           └── 11-ai-llm.md     # Phase 11: AI/LLM safety (7 checks)
 ├── tests/
 │   └── validate-plugin.sh    # Plugin structure validation tests
 ├── .github/

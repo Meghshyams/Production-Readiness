@@ -94,3 +94,21 @@ Check for platform-specific deployment configs and validate:
 - `app.yaml` (Google App Engine) — check for valid config
 
 **Severity**: INFO — validate detected configs exist and are well-formed
+
+### 6.10 Serverless & Edge Runtime Fitness
+
+If the project deploys to serverless/edge (Vercel/Netlify functions, Cloudflare Workers, AWS Lambda, Deno Deploy):
+- Check function/bundle size against platform limits — oversized bundles increase cold starts and can fail deploys (e.g., large deps pulled into an edge function).
+- Edge runtime: flag Node-only APIs (`fs`, `net`, native modules, `Buffer`-heavy code) used in code marked `export const runtime = 'edge'` or in a Worker — these break on edge.
+- Check for module-scope initialization that's expensive on every cold start (large client init, big in-memory data load).
+- Check that DB access from serverless uses a connection strategy built for it (serverless driver, HTTP/data-proxy, or pooler like PgBouncer/Prisma Accelerate) rather than opening a raw pooled connection per invocation — see also Performance 8.11.
+- **Severity**: WARNING for Node-only APIs in edge runtime or raw DB pools in serverless; INFO for cold-start optimization opportunities.
+
+### 6.11 CI/CD Pipeline Hygiene
+
+If CI/CD config was detected (Phase 1):
+- Check that the pipeline runs the gates this audit covers — build, tests, lint, and a dependency/security scan — before deploy.
+- Check that CI uses frozen-lockfile installs (cross-ref Security 2.14).
+- Check that deploy credentials/secrets come from the platform's secret store, not committed files or plaintext in the workflow.
+- Check for a documented rollback path (previous-image redeploy, `vercel rollback`, git revert + redeploy).
+- **Severity**: WARNING if deploys run with no test/build gate; INFO for missing rollback documentation.
