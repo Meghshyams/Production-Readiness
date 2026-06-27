@@ -19,17 +19,20 @@ Each phase section header should indicate its source:
 
 ## Summary
 
-| Pillar          | Status | Critical | Warnings | Info | Source              |
-|-----------------|--------|----------|----------|------|---------------------|
-| Security        | PASS/FAIL | N     | N        | N    | Fresh               |
-| Visual QA       | PASS/FAIL | N     | N        | N    | Cached (Jan 15)     |
-| Code Quality    | PASS/FAIL | N     | N        | N    | Fresh               |
-| Testing         | PASS/FAIL | N     | N        | N    | Cached (Jan 15)     |
-| Error Handling  | PASS/FAIL | N     | N        | N    | Cached (Jan 15)     |
-| Config & Build  | PASS/FAIL | N     | N        | N    | Fresh               |
-| Performance     | PASS/FAIL | N     | N        | N    | Cached (Jan 15)     |
-| Accessibility   | PASS/FAIL | N     | N        | N    | Fresh               |
-| **TOTAL**       |        | **N**    | **N**    | **N**|                     |
+| Pillar              | Status | Critical | Warnings | Info | Source              |
+|---------------------|--------|----------|----------|------|---------------------|
+| Security & Supply Chain | PASS/FAIL | N | N      | N    | Fresh               |
+| Visual QA           | PASS/FAIL | N     | N        | N    | Cached (Jan 15)     |
+| Code Quality        | PASS/FAIL | N     | N        | N    | Fresh               |
+| Testing             | PASS/FAIL | N     | N        | N    | Cached (Jan 15)     |
+| Error & Observability | PASS/FAIL | N   | N        | N    | Cached (Jan 15)     |
+| Config & Build      | PASS/FAIL | N     | N        | N    | Fresh               |
+| Performance         | PASS/FAIL | N     | N        | N    | Cached (Jan 15)     |
+| Accessibility       | PASS/FAIL | N     | N        | N    | Fresh               |
+| AI/LLM Safety       | PASS/FAIL/N-A | N | N       | N    | Fresh               |
+| **TOTAL**           |        | **N**    | **N**    | **N**|                     |
+
+Show the AI/LLM Safety row only when an AI integration was detected; otherwise omit it or mark it `N/A — no AI integration`.
 
 ## Verdict Logic
 - **READY**: Zero CRITICAL issues, fewer than 5 WARNINGs

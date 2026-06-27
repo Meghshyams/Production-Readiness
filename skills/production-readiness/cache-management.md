@@ -59,6 +59,7 @@ A phase reruns if ANY changed file matches its patterns:
 | visual | `src/**`, `app/**`, `components/**`, `styles/**`, `*.css`, `*.scss`, `public/**`, `package.json` |
 | performance | `src/**`, `app/**`, `lib/**`, `package.json`, `*.config.*` |
 | accessibility | `src/**`, `app/**`, `components/**`, `*.css`, `*.scss`, `*.html`, `*.jsx`, `*.tsx`, `*.vue`, `*.svelte` |
+| ai | `src/**`, `app/**`, `lib/**`, `server/**`, `api/**`, files importing an AI SDK, prompt/template files (`*prompt*`, `prompts/**`), `*.config.*`, `package.json` |
 
 ### Special Rules
 

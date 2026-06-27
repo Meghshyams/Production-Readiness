@@ -56,3 +56,20 @@ Check for:
 - Accessibility-related ESLint plugin: `eslint-plugin-jsx-a11y`
 - Playwright accessibility testing: check for `page.accessibility.snapshot()` usage in e2e tests
 - **Severity**: INFO if no automated a11y testing configured
+
+### 10.7 WCAG 2.2 Criteria
+
+WCAG 2.2 (the current standard) added success criteria beyond 2.1. Check:
+- **Target Size (2.5.8, AA)**: interactive controls (buttons, links, icon taps) should be at least 24×24 CSS pixels (48×48 recommended for primary touch targets), with adequate spacing. Flag tiny icon buttons / closely-packed tap targets — WARNING on mobile-facing UI.
+- **Focus Not Obscured (2.4.11, AA)**: sticky headers/footers, cookie banners, or chat widgets must not hide the focused element. Flag fixed/sticky overlays that could cover focused content — INFO.
+- **Dragging Movements (2.5.7, AA)**: drag-only interactions (sliders, reordering, drag-and-drop) should have a non-drag alternative — INFO if drag-only.
+- **Accessible Authentication (3.3.8, AA)**: login shouldn't require a cognitive test (e.g., transcribing a CAPTCHA, remembering a one-time code without paste). Allow paste into password/OTP fields — flag fields that block paste — WARNING.
+- **Consistent Help (3.2.6, A)**: help/contact mechanisms appear in a consistent location across pages — INFO.
+- **Severity**: WARNING for undersized touch targets and paste-blocked auth; INFO for the rest.
+
+### 10.8 Language & Media
+
+- **Page language**: `<html lang="...">` is set (and `dir="rtl"` for RTL languages where applicable) — WARNING if missing (screen readers can't pick the right voice).
+- **Inline language changes**: passages in another language use `lang` on the element — INFO.
+- **Media alternatives**: `<video>`/`<audio>` have captions (`<track kind="captions">`) and transcripts where applicable — WARNING for media without captions.
+- **Severity**: WARNING for missing `lang` on `<html>` and uncaptioned media; INFO for inline language hints.

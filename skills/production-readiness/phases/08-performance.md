@@ -69,3 +69,26 @@ If ORM is detected:
 - Check for large JSON responses (returning nested relations when not needed)
 - Look for GraphQL over-fetching patterns (requesting all fields)
 - **Severity**: WARNING for unpaginated list endpoints, INFO for over-fetching
+
+### 8.10 Compression & Transfer
+
+- Check whether responses are compressed: framework/middleware (`compression` in Express, `compress` in Fastify) or platform/CDN-level (Vercel, Cloudflare, nginx `gzip`/`brotli`).
+- Prefer Brotli for static text assets where the platform supports it; gzip as the baseline.
+- Check that large JSON API responses are compressed (not just HTML).
+- Most managed platforms (Vercel/Netlify/Cloudflare) compress automatically — note this rather than flagging; self-hosted servers must configure it.
+- **Severity**: WARNING if a self-hosted server serves uncompressed text/JSON; INFO otherwise.
+
+### 8.11 Database Connection Management
+
+- Check for a connection pool with a sane max size (not unbounded, not a new connection per request).
+- **Serverless/edge**: a raw pooled DB client per invocation exhausts connections under load — check for a serverless-appropriate driver or external pooler (PgBouncer, Prisma Accelerate, Neon/Supabase pooler, `@neondatabase/serverless`, `postgres.js` with low max). Cross-ref Build 6.10.
+- Check that connections are released/closed (no leaks in error paths).
+- **Severity**: WARNING for raw pooled connections in serverless or unbounded pools; INFO for tuning opportunities.
+
+### 8.12 Rendering & Asset Delivery
+
+- **Critical CSS / render-blocking**: flag large blocking CSS/JS in `<head>` without `async`/`defer` or inlining of critical CSS (cross-ref 8.8).
+- **Unused CSS**: very large CSS bundles relative to app size — recommend purge (Tailwind JIT/v4 handles this automatically; flag legacy setups that don't).
+- **Modern image formats**: recommend AVIF/WebP for large raster images (framework image components do this automatically — flag only raw `<img>` with PNG/JPG hero assets).
+- **Static vs dynamic rendering**: for Next.js/Nuxt/SvelteKit, flag pages that opt every route into dynamic/SSR rendering when static/ISR would serve faster and cheaper.
+- **Severity**: INFO with specific suggestions (these are optimization guidance, rarely blocking).
