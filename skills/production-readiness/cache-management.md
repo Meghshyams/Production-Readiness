@@ -40,7 +40,7 @@ Results are stored in `.production-readiness/cache.json` in the project root.
    c. If cache exists:
       - Read the cache file.
       - Run `git diff --name-only <cachedCommitHash>..HEAD` to get changed committed files.
-      - Run `git diff --name-only` to get uncommitted changes.
+      - Run `git status --porcelain` to get working-tree changes — this covers staged, unstaged, AND untracked files. (Do NOT use plain `git diff`: it misses staged changes and never shows untracked files, so a brand-new file with a hardcoded secret would silently keep the security phase cached.)
       - Combine both lists into `changedFiles`.
       - If `changedFiles` is empty AND cache is less than 24 hours old: show cached report with an `[ALL CACHED]` banner at the top.
       - Otherwise: map `changedFiles` to affected phases using the table below, rerun only affected phases + dependency audit (check 2.3, always fresh), merge fresh results with cached results, and save updated cache.

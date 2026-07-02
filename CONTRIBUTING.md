@@ -29,7 +29,7 @@ The detection phase identifies the project stack. You can add detection for:
 If a check produces false positives (flags something that's actually fine) or false negatives (misses real issues), adjust the instructions to be more precise.
 
 ### New Pillars
-Want to add accessibility, i18n, or documentation checks? Propose a new pillar.
+Want to add SEO, i18n, or documentation checks? Propose a new pillar.
 
 ## Making Changes
 
@@ -53,7 +53,7 @@ Use prefixes: `feat/`, `fix/`, `docs/`, `refactor/`
 The skill is modular. Choose what to edit based on your change:
 
 - **Adding or modifying checks within an existing pillar** — edit the relevant phase file in `skills/production-readiness/phases/` (e.g., `02-security.md` for security checks, `04-testing.md` for testing checks).
-- **Adding a new pillar** — create a new phase file (e.g., `10-accessibility.md`) in `phases/` and reference it from `SKILL.md`.
+- **Adding a new pillar** — create a new phase file in `phases/` (numbered before `11-save.md`, which must stay last), reference it from `SKILL.md`, add its row to the cache mapping in `cache-management.md`, and update `tests/validate-plugin.sh` (required files + check counts).
 - **Changing execution flow, arguments, or guidelines** — edit `skills/production-readiness/SKILL.md`.
 - **Changing the report format** — edit `skills/production-readiness/report-format.md`.
 - **Changing cache behavior** — edit `skills/production-readiness/cache-management.md`.
@@ -144,8 +144,11 @@ production-readiness/
 │           ├── 06-build.md
 │           ├── 07-visual.md
 │           ├── 08-performance.md
-│           ├── 09-save.md
-│           └── 10-accessibility.md
+│           ├── 09-accessibility.md
+│           ├── 10-ai-llm.md
+│           └── 11-save.md
+├── examples/
+│   └── take-screenshots.qa.ts # Copyable Visual QA screenshot helper
 ├── tests/
 │   └── validate-plugin.sh     # Plugin validation tests
 ├── .github/

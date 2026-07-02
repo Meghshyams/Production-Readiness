@@ -83,10 +83,12 @@ After presenting the detection summary, check for cached results:
 | Config & Build | CACHED     | No relevant files changed      |
 | Visual QA      | RERUNNING  | UI components changed          |
 | Performance    | CACHED     | No relevant files changed      |
+| Accessibility  | RERUNNING  | UI components changed          |
+| AI/LLM Safety  | CACHED     | No relevant files changed      |
 
 Phases marked CACHED will use results from [date]. Use --fresh to rerun all.
 ```
 
 - If no cache exists, note: "No cached results found. Running full audit."
 
-Ask user: "Proceeding with all 9 phases (AI/LLM Safety runs only if an AI integration was detected). Reply with phase names to skip, `--fresh` to rerun all, or press Enter to continue."
+Ask user: "Proceeding with all 9 pillars (AI/LLM Safety runs only if an AI integration was detected). Reply with phase names to skip, `--fresh` to rerun all, or press Enter to continue."

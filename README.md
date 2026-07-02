@@ -8,18 +8,18 @@ A comprehensive production readiness audit for [Claude Code](https://claude.com/
 
 Deploying to production is stressful. You check one thing, forget another. Did you leave `console.log` in? Are there hardcoded API keys? Does the mobile layout break? Is the build even passing?
 
-This plugin runs **70+ automated checks** across 9 categories and produces a single, prioritized report. It adapts to whatever tech stack you're using — no configuration needed.
+This plugin runs **75+ automated checks** across 9 categories and produces a single, prioritized report. It adapts to whatever tech stack you're using — no configuration needed.
 
 ## The 9 Pillars
 
 | # | Pillar | What's Checked |
 |---|--------|---------------|
-| 1 | **Security & Supply Chain** | Hardcoded secrets, `.env` safety, dependency vulnerabilities, input validation, auth config, rate limiting, security headers, error exposure, SQL injection, XSS, CORS, dependency licenses, **git-history secret scanning**, **lockfile integrity**, **SBOM/build provenance**, **webhook signature verification** |
+| 1 | **Security & Supply Chain** | Hardcoded secrets, `.env` safety, dependency vulnerabilities, input validation, auth config, rate limiting, security headers, error exposure, SQL injection, XSS, CORS, dependency licenses, **git-history secret scanning**, **lockfile integrity**, **SBOM/build provenance**, **dependency freshness**, **webhook signature verification** |
 | 2 | **Visual QA** | Screenshots every page at desktop + mobile viewports, then inspects each for layout issues, spelling mistakes, responsive problems, broken UI, and visual inconsistencies |
 | 3 | **Code Quality** | `console.log` / `debugger` statements, TODO/FIXME comments, lint errors (ESLint 9 flat config / Biome / Oxlint aware), type errors, unused dependencies, **security linting** |
 | 4 | **Testing** | Runs your test suites (Vitest / Jest / `bun test` / pytest / …), reports pass/fail and coverage, flags untested critical paths, **skipped/`.only` tests, and flakiness signals** |
-| 5 | **Error Handling & Observability** | Error boundaries, error tracking (Sentry etc.), health checks, structured (JSON) logging, sensitive data in logs, **distributed tracing (OpenTelemetry) + correlation IDs**, **graceful shutdown** |
-| 6 | **Config & Build** | Build passes, env vars documented, source maps hidden, no dev-only leaks, HTTPS redirects, Docker security, container orchestration, platform deploy configs, **serverless/edge fitness**, **CI/CD pipeline hygiene** |
+| 5 | **Error Handling & Observability** | Error boundaries, error tracking (Sentry etc.), health checks, structured (JSON) logging, sensitive data in logs, **distributed tracing (OpenTelemetry) + correlation IDs**, **graceful shutdown**, **monitoring & alerting** |
+| 6 | **Config & Build** | Build passes, env vars documented, source maps hidden, no dev-only leaks, HTTPS redirects, Docker security, container orchestration, platform deploy configs, **serverless/edge fitness**, **CI/CD pipeline hygiene**, **DB migration safety**, **runtime version pinning** |
 | 7 | **Performance** | Image optimization, bundle size, caching, N+1 query patterns, lazy loading, Core Web Vitals, fonts, third-party scripts, API response size, **compression (Brotli/gzip)**, **DB connection pooling**, **rendering/asset delivery** |
 | 8 | **Accessibility** | Semantic HTML, ARIA, keyboard navigation, color contrast, screen reader support, automated a11y testing, **WCAG 2.2 criteria (target size, focus-not-obscured, accessible auth)**, **language & media captions** |
 | 9 | **AI/LLM Safety** | Prompt-injection surfaces, secret/PII leakage into prompts, untrusted output handling, token/cost guardrails, model & SDK pinning, AI-endpoint reliability, AI observability & moderation _(runs only when an AI integration is detected)_ |
@@ -27,10 +27,14 @@ This plugin runs **70+ automated checks** across 9 categories and produces a sin
 ## Install
 
 ```bash
-claude plugin add Meghshyams/production-readiness
+# Add the marketplace, then install the plugin
+claude plugin marketplace add Meghshyams/production-readiness
+claude plugin install production-readiness@production-readiness-plugins
 ```
 
-Or clone and use locally:
+Or from within a Claude Code session: `/plugin marketplace add Meghshyams/production-readiness`, then `/plugin install production-readiness`.
+
+Or clone and load locally for a single session:
 
 ```bash
 git clone https://github.com/Meghshyams/production-readiness.git
@@ -51,9 +55,16 @@ claude --plugin-dir ./production-readiness
 
 # Override dev server port
 /production-readiness --port=3000
+
+# Apply safe mechanical fixes after the audit (with confirmation)
+/production-readiness --fix
 ```
 
 **Pillar names for `--only` / `--skip`:** `security`, `visual`, `quality`, `testing`, `build`, `errors`, `performance`, `accessibility`, `ai`
+
+### Fix Mode
+
+With `--fix`, the plugin lists findings that have safe, mechanical fixes (gitignore entries, missing `.dockerignore`, `lang` attribute, stray `debugger` / `.only`, unpinned `:latest` Docker tags, …), asks for confirmation, and applies them. Anything judgment-dependent (auth logic, CSP values, query rewrites) is never auto-fixed — the report's fix suggestion is the deliverable there.
 
 ## How It Works
 
@@ -64,7 +75,7 @@ Phase 1: DETECT
 ├── Checks for cached results from previous runs
 └── Shows summary table + cache status before proceeding
 
-Phase 2-8 + 10-11: AUDIT
+Phases 2-10: AUDIT
 ├── Skips phases with valid cached results (no relevant files changed)
 ├── Reruns phases where source files changed since last audit
 ├── Runs phases in parallel where possible for faster execution
@@ -73,13 +84,13 @@ Phase 2-8 + 10-11: AUDIT
 ├── Runs AI/LLM safety checks if an AI integration is detected
 └── Collects all findings with severity levels
 
-Phase 9: REPORT
+REPORT
 ├── Merges fresh and cached results into a unified report
 ├── Labels each phase as Fresh or Cached with date
 ├── Verdict: READY / NEEDS FIXES / BLOCKED
 └── Prioritized next steps
 
-Phase 10: SAVE
+Phase 11: SAVE
 └── Caches all results for future incremental reruns
 ```
 
@@ -158,7 +169,7 @@ The plugin detects your tools and adapts automatically. No config file needed.
 
 **Project**: my-app
 **Date**: 2026-03-23
-**Verdict**: NEEDS FIXES
+**Verdict**: BLOCKED (1 critical issue)
 
 | Pillar                  | Status | Critical | Warnings | Info |
 |-------------------------|--------|----------|----------|------|
@@ -224,16 +235,18 @@ production-readiness/
 │       ├── report-format.md     # Report template, verdict logic, cached labels
 │       └── phases/
 │           ├── 01-detect.md     # Phase 1: Detection + cache status check
-│           ├── 02-security.md   # Phase 2: Security & supply chain (16 checks)
+│           ├── 02-security.md   # Phase 2: Security & supply chain (17 checks)
 │           ├── 03-quality.md    # Phase 3: Code quality (6 checks)
 │           ├── 04-testing.md    # Phase 4: Testing (4 checks)
-│           ├── 05-errors.md     # Phase 5: Error handling & observability (7 checks)
-│           ├── 06-build.md      # Phase 6: Configuration & build (11 checks)
+│           ├── 05-errors.md     # Phase 5: Error handling & observability (8 checks)
+│           ├── 06-build.md      # Phase 6: Configuration & build (13 checks)
 │           ├── 07-visual.md     # Phase 7: Visual QA (2 checks)
 │           ├── 08-performance.md  # Phase 8: Performance (12 checks)
-│           ├── 09-save.md       # Phase 9: Save results
-│           ├── 10-accessibility.md  # Phase 10: Accessibility (8 checks)
-│           └── 11-ai-llm.md     # Phase 11: AI/LLM safety (7 checks)
+│           ├── 09-accessibility.md  # Phase 9: Accessibility (8 checks)
+│           ├── 10-ai-llm.md     # Phase 10: AI/LLM safety (7 checks)
+│           └── 11-save.md       # Phase 11: Save results
+├── examples/
+│   └── take-screenshots.qa.ts # Copyable Visual QA screenshot helper
 ├── tests/
 │   └── validate-plugin.sh    # Plugin structure validation tests
 ├── .github/

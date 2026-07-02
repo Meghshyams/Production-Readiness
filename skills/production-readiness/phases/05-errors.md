@@ -63,3 +63,13 @@ For long-running servers (especially containerized):
 - Check that DB pools, queues, and file handles are closed on shutdown.
 - Next.js/Vercel serverless can usually skip this; classic Node servers, workers, and containers should not.
 - **Severity**: INFO — recommend graceful shutdown for containerized/long-running services.
+
+### 5.8 Monitoring & Alerting
+
+Error tracking (5.2) tells you what broke; alerting tells you *when* — before users do.
+
+- Check for uptime/synthetic monitoring config or integration (Better Stack/Uptime Robot/Pingdom/Checkly config, a monitored health endpoint from 5.3, or platform-native checks — Vercel/Fly/K8s probes count).
+- Check whether error tracking has alert rules wired (Sentry alert config, PagerDuty/Opsgenie/Slack webhook integration in code or CI/infra config) rather than being a dashboard nobody watches.
+- Check for basic resource/performance alerting on self-hosted deployments (CPU/memory/disk, queue depth) — Prometheus rules, Grafana alerts, DataDog monitors.
+- This is often configured in the platform's UI and invisible to the repo — if nothing is detectable, ask rather than flag, and note it as unverified.
+- **Severity**: INFO — recommend at least uptime monitoring + one alert channel for production services.

@@ -24,6 +24,8 @@ required_files=(
   "README.md"
   "LICENSE"
   "CONTRIBUTING.md"
+  "PRIVACY.md"
+  "examples/take-screenshots.qa.ts"
   "$SKILL_DIR/cache-management.md"
   "$SKILL_DIR/report-format.md"
   "$SKILL_DIR/phases/01-detect.md"
@@ -34,8 +36,9 @@ required_files=(
   "$SKILL_DIR/phases/06-build.md"
   "$SKILL_DIR/phases/07-visual.md"
   "$SKILL_DIR/phases/08-performance.md"
-  "$SKILL_DIR/phases/09-save.md"
-  "$SKILL_DIR/phases/10-accessibility.md"
+  "$SKILL_DIR/phases/09-accessibility.md"
+  "$SKILL_DIR/phases/10-ai-llm.md"
+  "$SKILL_DIR/phases/11-save.md"
 )
 
 for f in "${required_files[@]}"; do
@@ -70,7 +73,7 @@ for field in "name:" "description:" "user-invocable:" "allowed-tools:"; do
 done
 
 # -------------------------------------------------------
-section "3. All 8 pillars referenced in SKILL.md"
+section "3. All 9 pillars referenced in SKILL.md"
 # -------------------------------------------------------
 pillars=(
   "Security"
@@ -81,6 +84,7 @@ pillars=(
   "Visual QA"
   "Performance"
   "Accessibility"
+  "AI/LLM Safety"
 )
 
 for pillar in "${pillars[@]}"; do
@@ -121,10 +125,11 @@ done
 # -------------------------------------------------------
 section "5. Phase files are non-empty and have headings"
 # -------------------------------------------------------
-for i in 01 02 03 04 05 06 07 08 09 10; do
-  phase_file="$SKILL_DIR/phases/${i}-*.md"
-  # shellcheck disable=SC2086
-  actual=$(ls $phase_file 2>/dev/null | head -1)
+for i in 01 02 03 04 05 06 07 08 09 10 11; do
+  actual=""
+  for candidate in "$SKILL_DIR"/phases/"${i}"-*.md; do
+    if [ -f "$candidate" ]; then actual="$candidate"; break; fi
+  done
   if [ -z "$actual" ]; then
     fail "No phase file matching ${i}-*.md"
     continue
@@ -145,80 +150,47 @@ done
 # -------------------------------------------------------
 section "6. Check counts in phase files"
 # -------------------------------------------------------
-# Phase 2 (security) should have checks 2.1 through 2.12
-for n in 1 2 3 4 5 6 7 8 9 10 11 12; do
-  if grep -q "### 2\.$n " "$SKILL_DIR/phases/02-security.md"; then
-    pass "Security check 2.$n present"
-  else
-    fail "Security check 2.$n missing"
-  fi
-done
+# phase_number:expected_check_count:file
+check_specs=(
+  "2:17:02-security.md"
+  "3:6:03-quality.md"
+  "4:4:04-testing.md"
+  "5:8:05-errors.md"
+  "6:13:06-build.md"
+  "7:2:07-visual.md"
+  "8:12:08-performance.md"
+  "9:8:09-accessibility.md"
+  "10:7:10-ai-llm.md"
+)
 
-# Phase 3 (quality) should have 3.1-3.5
-for n in 1 2 3 4 5; do
-  if grep -q "### 3\.$n " "$SKILL_DIR/phases/03-quality.md"; then
-    pass "Quality check 3.$n present"
-  else
-    fail "Quality check 3.$n missing"
-  fi
-done
+for spec in "${check_specs[@]}"; do
+  phase_num="${spec%%:*}"
+  rest="${spec#*:}"
+  expected="${rest%%:*}"
+  file="${rest#*:}"
+  path="$SKILL_DIR/phases/$file"
 
-# Phase 4 (testing) should have 4.1-4.3
-for n in 1 2 3; do
-  if grep -q "### 4\.$n " "$SKILL_DIR/phases/04-testing.md"; then
-    pass "Testing check 4.$n present"
-  else
-    fail "Testing check 4.$n missing"
-  fi
-done
+  n=1
+  while [ "$n" -le "$expected" ]; do
+    if grep -q "### ${phase_num}\.${n} " "$path"; then
+      pass "$file check ${phase_num}.${n} present"
+    else
+      fail "$file check ${phase_num}.${n} missing"
+    fi
+    n=$((n + 1))
+  done
 
-# Phase 5 (errors) should have 5.1-5.5
-for n in 1 2 3 4 5; do
-  if grep -q "### 5\.$n " "$SKILL_DIR/phases/05-errors.md"; then
-    pass "Errors check 5.$n present"
+  # No extra checks beyond the expected count (catches stale test expectations)
+  extra=$((expected + 1))
+  if grep -q "### ${phase_num}\.${extra} " "$path"; then
+    fail "$file has unexpected check ${phase_num}.${extra} — update check_specs and SKILL.md counts"
   else
-    fail "Errors check 5.$n missing"
-  fi
-done
-
-# Phase 6 (build) should have 6.1-6.9
-for n in 1 2 3 4 5 6 7 8 9; do
-  if grep -q "### 6\.$n " "$SKILL_DIR/phases/06-build.md"; then
-    pass "Build check 6.$n present"
-  else
-    fail "Build check 6.$n missing"
-  fi
-done
-
-# Phase 7 (visual) should have 7.1-7.2
-for n in 1 2; do
-  if grep -q "### 7\.$n " "$SKILL_DIR/phases/07-visual.md"; then
-    pass "Visual check 7.$n present"
-  else
-    fail "Visual check 7.$n missing"
-  fi
-done
-
-# Phase 8 (performance) should have 8.1-8.9
-for n in 1 2 3 4 5 6 7 8 9; do
-  if grep -q "### 8\.$n " "$SKILL_DIR/phases/08-performance.md"; then
-    pass "Performance check 8.$n present"
-  else
-    fail "Performance check 8.$n missing"
-  fi
-done
-
-# Phase 10 (accessibility) should have 10.1-10.6
-for n in 1 2 3 4 5 6; do
-  if grep -q "### 10\.$n " "$SKILL_DIR/phases/10-accessibility.md"; then
-    pass "Accessibility check 10.$n present"
-  else
-    fail "Accessibility check 10.$n missing"
+    pass "$file has exactly $expected checks"
   fi
 done
 
 # -------------------------------------------------------
-section "7. JSON config files are valid"
+section "7. JSON config files are valid and versions match"
 # -------------------------------------------------------
 if python3 -c "import json; json.load(open('.claude-plugin/plugin.json'))" 2>/dev/null; then
   pass "plugin.json is valid JSON"
@@ -242,6 +214,17 @@ if python3 -c "import json; d=json.load(open('.claude-plugin/marketplace.json'))
   pass "marketplace.json has plugins array"
 else
   fail "marketplace.json missing plugins"
+fi
+
+if python3 -c "
+import json
+p = json.load(open('.claude-plugin/plugin.json'))
+m = json.load(open('.claude-plugin/marketplace.json'))
+assert p['version'] == m['metadata']['version'] == m['plugins'][0]['version'], (p['version'], m['metadata']['version'], m['plugins'][0]['version'])
+" 2>/dev/null; then
+  pass "plugin.json and marketplace.json versions match"
+else
+  fail "Version mismatch between plugin.json and marketplace.json"
 fi
 
 # -------------------------------------------------------
@@ -271,7 +254,7 @@ done
 section "10. Cache-management has phase mapping table"
 # -------------------------------------------------------
 cache_file="$SKILL_DIR/cache-management.md"
-for phase in security quality testing errors build visual performance accessibility; do
+for phase in security quality testing errors build visual performance accessibility ai; do
   if grep -q "| $phase " "$cache_file"; then
     pass "Cache mapping includes $phase"
   else

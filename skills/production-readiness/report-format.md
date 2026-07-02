@@ -36,8 +36,10 @@ Show the AI/LLM Safety row only when an AI integration was detected; otherwise o
 
 ## Verdict Logic
 - **READY**: Zero CRITICAL issues, fewer than 5 WARNINGs
-- **NEEDS FIXES**: Zero CRITICAL issues but 5+ WARNINGs, OR 1-2 non-blocking CRITICALs
-- **BLOCKED**: 3+ CRITICAL issues that prevent safe deployment
+- **NEEDS FIXES**: Zero CRITICAL issues, 5+ WARNINGs
+- **BLOCKED**: Any CRITICAL issue — CRITICAL means "must fix before deploy", so even one blocks
+
+A pillar's Status is **FAIL** if it has any CRITICAL finding, otherwise **PASS** (warnings and info don't fail a pillar). If a finding seems CRITICAL by pattern but is clearly not exploitable in context (e.g., a test-only Stripe key in a fixtures file), downgrade it to WARNING with a note — don't leave non-blocking CRITICALs in the report.
 
 ---
 
