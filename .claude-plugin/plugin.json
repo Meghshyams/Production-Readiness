@@ -1,7 +1,7 @@
 {
   "name": "production-readiness",
-  "version": "3.0.0",
-  "description": "Comprehensive production readiness audit — 70+ checks across 9 pillars: security & supply chain, visual QA, code quality, testing, error handling & observability, build, performance, accessibility (WCAG 2.2), and AI/LLM safety. Like having a senior engineer + QA tester do a final review before deploy.",
+  "version": "3.1.0",
+  "description": "Comprehensive production readiness audit — 75+ checks across 9 pillars: security & supply chain, visual QA, code quality, testing, error handling & observability, build, performance, accessibility (WCAG 2.2), and AI/LLM safety. Like having a senior engineer + QA tester do a final review before deploy.",
   "author": {
     "name": "Meghshyam Sonar"
   },

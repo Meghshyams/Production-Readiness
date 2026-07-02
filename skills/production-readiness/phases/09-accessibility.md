@@ -1,8 +1,8 @@
-## Phase 10: Accessibility
+## Phase 9: Accessibility
 
 **Note**: This phase applies primarily to projects with a frontend/UI. Skip for backend-only APIs with a note.
 
-### 10.1 Semantic HTML
+### 9.1 Semantic HTML
 
 Search component/page files for:
 - `<div onClick` or `<span onClick` — should be `<button>` or `<a>` for interactive elements
@@ -11,7 +11,7 @@ Search component/page files for:
 - Heading hierarchy: check for skipped levels (e.g., `<h1>` followed by `<h3>`)
 - **Severity**: WARNING for clickable divs/spans, INFO for missing landmarks
 
-### 10.2 ARIA Labels & Attributes
+### 9.2 ARIA Labels & Attributes
 
 Search for:
 - `<img` tags without `alt` attribute (not `next/image` which requires it)
@@ -21,7 +21,7 @@ Search for:
 - Icon-only buttons without `aria-label`
 - **Severity**: WARNING for missing alt text, WARNING for unlabeled form inputs
 
-### 10.3 Keyboard Navigation
+### 9.3 Keyboard Navigation
 
 Check for:
 - `tabIndex` with positive values (disrupts natural tab order) — WARNING
@@ -31,7 +31,7 @@ Check for:
 - Skip-to-content link at the top of the page — INFO if missing
 - **Severity**: WARNING for suppressed focus indicators, INFO for missing skip links
 
-### 10.4 Color Contrast & Visual
+### 9.4 Color Contrast & Visual
 
 Check CSS/theme files for:
 - Text colors against background colors — flag obvious low-contrast combinations
@@ -40,7 +40,7 @@ Check CSS/theme files for:
 - Ensure text is not conveyed by color alone (e.g., error states should have icons/text, not just red color)
 - **Severity**: WARNING for likely contrast issues, INFO for missing motion preferences
 
-### 10.5 Screen Reader Support
+### 9.5 Screen Reader Support
 
 Check for:
 - `aria-live` regions for dynamic content updates (toast notifications, form errors, loading states)
@@ -49,7 +49,7 @@ Check for:
 - `aria-expanded`, `aria-selected`, `aria-checked` on interactive widgets (accordions, tabs, toggles)
 - **Severity**: INFO — recommended for inclusive UX
 
-### 10.6 Automated Accessibility Testing
+### 9.6 Automated Accessibility Testing
 
 Check for:
 - Accessibility testing tools in devDependencies: `@axe-core/react`, `jest-axe`, `@axe-core/playwright`, `pa11y`, `lighthouse`
@@ -57,7 +57,7 @@ Check for:
 - Playwright accessibility testing: check for `page.accessibility.snapshot()` usage in e2e tests
 - **Severity**: INFO if no automated a11y testing configured
 
-### 10.7 WCAG 2.2 Criteria
+### 9.7 WCAG 2.2 Criteria
 
 WCAG 2.2 (the current standard) added success criteria beyond 2.1. Check:
 - **Target Size (2.5.8, AA)**: interactive controls (buttons, links, icon taps) should be at least 24×24 CSS pixels (48×48 recommended for primary touch targets), with adequate spacing. Flag tiny icon buttons / closely-packed tap targets — WARNING on mobile-facing UI.
@@ -67,7 +67,7 @@ WCAG 2.2 (the current standard) added success criteria beyond 2.1. Check:
 - **Consistent Help (3.2.6, A)**: help/contact mechanisms appear in a consistent location across pages — INFO.
 - **Severity**: WARNING for undersized touch targets and paste-blocked auth; INFO for the rest.
 
-### 10.8 Language & Media
+### 9.8 Language & Media
 
 - **Page language**: `<html lang="...">` is set (and `dir="rtl"` for RTL languages where applicable) — WARNING if missing (screen readers can't pick the right voice).
 - **Inline language changes**: passages in another language use `lang` on the element — INFO.

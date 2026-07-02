@@ -18,9 +18,14 @@ jobs:
       - name: Run plugin validation tests
         run: bash tests/validate-plugin.sh
 
+      - name: Shellcheck test scripts
+        run: shellcheck tests/*.sh
+
       - name: Lint markdown
         uses: DavidAnson/markdownlint-cli2-action@v19
         with:
           globs: |
             README.md
             CONTRIBUTING.md
+            PRIVACY.md
+            skills/**/*.md

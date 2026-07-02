@@ -155,7 +155,17 @@ A secret committed and later "removed" still lives in git history and is effecti
 - These are maturity signals, not blockers, but increasingly expected for software shipped to others.
 - **Severity**: INFO — recommend SBOM generation and provenance for distributed software.
 
-### 2.16 Webhook & Callback Signature Verification
+### 2.16 Dependency Freshness
+
+Outdated dependencies accumulate unpatched CVEs and make future upgrades riskier.
+
+- Run `npm outdated` (or `pip list --outdated`, `cargo outdated`, `bundle outdated`, `go list -u -m all`) and summarize.
+- Flag dependencies that are **multiple major versions behind** or appear unmaintained (no release in 2+ years for actively-developed ecosystems) — INFO.
+- Flag a framework major that is past end-of-life / out of security support (e.g., an EOL Next.js/Django/Rails major) — WARNING.
+- Check for automated update tooling (`renovate.json`, `.github/dependabot.yml`) — INFO if absent.
+- **Severity**: WARNING for EOL framework majors; INFO for outdated deps and missing update automation.
+
+### 2.17 Webhook & Callback Signature Verification
 
 - If the app receives inbound webhooks (Stripe, GitHub, Slack, Clerk, payment/IPN, third-party callbacks), check that the handler verifies the signature (e.g., `stripe.webhooks.constructEvent`, HMAC comparison, `svix` verification) before trusting the payload.
 - Check that signature comparison is constant-time (`crypto.timingSafeEqual` / framework helper) rather than `===`.

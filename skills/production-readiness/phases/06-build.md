@@ -112,3 +112,20 @@ If CI/CD config was detected (Phase 1):
 - Check that deploy credentials/secrets come from the platform's secret store, not committed files or plaintext in the workflow.
 - Check for a documented rollback path (previous-image redeploy, `vercel rollback`, git revert + redeploy).
 - **Severity**: WARNING if deploys run with no test/build gate; INFO for missing rollback documentation.
+
+### 6.12 Database Migration Safety
+
+If an ORM/migration tool is detected (Prisma, Drizzle, TypeORM, Django, Alembic, ActiveRecord, golang-migrate):
+
+- Check for uncommitted/pending migrations: schema files changed without a corresponding migration (`prisma migrate diff`, `makemigrations --check --dry-run`, drift between `schema.prisma` and `migrations/`) — WARNING.
+- Scan recent migrations for destructive operations (`DROP TABLE`, `DROP COLUMN`, `ALTER COLUMN ... NOT NULL` on existing data, mass `UPDATE`/`DELETE`) without an evident backfill/expand-contract strategy — WARNING.
+- Check that migrations run as a deliberate deploy step (CI/CD step, release command, entrypoint script) rather than relying on someone remembering to run them — INFO if no automated path found.
+- Check for a rollback/down-migration path or a documented recovery plan for failed migrations — INFO.
+- **Severity**: WARNING for pending migrations or destructive operations without a strategy; INFO for process gaps.
+
+### 6.13 Runtime Version Pinning
+
+- Check that the runtime version is pinned somewhere authoritative: `engines` in `package.json`, `.nvmrc` / `.node-version`, `.python-version` / `requires-python`, `.ruby-version`, `go.mod` toolchain, or the Dockerfile base image (cross-ref 6.6) — WARNING if the deploy platform silently picks a default runtime version.
+- Check that CI, Dockerfile, and local pins agree (e.g., `.nvmrc` says 20 but CI uses `node-version: 18`) — WARNING on mismatch.
+- Check the pinned runtime is a maintained LTS/supported version, not EOL — WARNING if EOL.
+- **Severity**: WARNING for unpinned or EOL runtimes and CI/local mismatches.
